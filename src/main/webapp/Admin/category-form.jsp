@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Admin Dashboard - Book Management System</title>
+    <title>${category == null ? 'Add New' : 'Edit'} Category - Book Management System</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -74,14 +74,14 @@
                         <span>Administrator</span>
                     </div>
                 </div>
-               <div class="navbar-nav w-100">
-				    <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-				    <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
-				    <a href="${pageContext.request.contextPath}/admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
-				    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-				    <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
-				    <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
-				</div>
+                <div class="navbar-nav w-100">
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
+                    <a href="${pageContext.request.contextPath}/admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/categories.jsp" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                </div>
             </nav>
         </div>
         <!-- Sidebar End -->
@@ -105,7 +105,7 @@
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
                             <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
-                            <a href="${pageContext.request.contextPath}/Auth/index.jsp" class="dropdown-item">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -117,44 +117,35 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <h3 class="mb-4">Welcome, ${sessionScope.user.name}!</h3>
-                            <p>You are logged in as an administrator. Use the sidebar to navigate through the system.</p>
+                            <h3 class="mb-4">${category == null ? 'Add New' : 'Edit'} Category</h3>
                             
-                            <!-- Quick Stats -->
-                            <div class="row mt-4">
-                                <div class="col-md-3">
-                                    <div class="card bg-primary text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Users</h5>
-                                            <h2 class="mb-0">${totalUsers}</h2>
-                                        </div>
-                                    </div>
+                            <form action="categories" method="post">
+                                <input type="hidden" name="action" value="${category == null ? 'insert' : 'update'}">
+                                <c:if test="${category != null}">
+                                    <input type="hidden" name="id" value="${category.id}">
+                                </c:if>
+                                
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="${category.name}" required>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-success text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Books</h5>
-                                            <h2 class="mb-0">${totalBooks}</h2>
-                                        </div>
-                                    </div>
+                                
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" 
+                                              rows="3">${category.description}</textarea>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-warning text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Active Loans</h5>
-                                            <h2 class="mb-0">${activeLoans}</h2>
-                                        </div>
-                                    </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-2"></i>${category == null ? 'Add' : 'Update'} Category
+                                    </button>
+                                    <a href="categories" class="btn btn-secondary">
+                                        <i class="fa fa-times me-2"></i>Cancel
+                                    </a>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Overdue</h5>
-                                            <h2 class="mb-0">${overdueItems}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -169,7 +160,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>Admin Dashboard</span>
+                            <span>${category == null ? 'Add New' : 'Edit'} Category</span>
                         </div>
                     </div>
                 </div>
