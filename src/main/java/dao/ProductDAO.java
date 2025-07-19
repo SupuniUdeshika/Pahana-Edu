@@ -20,13 +20,14 @@ public class ProductDAO {
 
     // Add a new product
     public boolean addProduct(Product product) {
-        String sql = "INSERT INTO products (name, description, quantity, category_id, image) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO products (name, description, quantity, category_id, image, price) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, product.getName());
             statement.setString(2, product.getDescription());
             statement.setInt(3, product.getQuantity());
             statement.setInt(4, product.getCategoryId());
-            statement.setBytes(5, product.getImage()); // Use getImage() for byte array
+            statement.setBytes(5, product.getImage());
+            statement.setDouble(6, product.getPrice());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -45,6 +46,7 @@ public class ProductDAO {
                 product.setId(resultSet.getInt("id"));
                 product.setName(resultSet.getString("name"));
                 product.setDescription(resultSet.getString("description"));
+                product.setPrice(resultSet.getDouble("price"));
                 product.setQuantity(resultSet.getInt("quantity"));
                 product.setCategoryId(resultSet.getInt("category_id"));
                 product.setCategoryName(resultSet.getString("category_name"));
@@ -78,6 +80,7 @@ public class ProductDAO {
                 product.setId(resultSet.getInt("id"));
                 product.setName(resultSet.getString("name"));
                 product.setDescription(resultSet.getString("description"));
+                product.setPrice(resultSet.getDouble("price"));
                 product.setQuantity(resultSet.getInt("quantity"));
                 product.setCategoryId(resultSet.getInt("category_id"));
                 product.setCategoryName(resultSet.getString("category_name"));
@@ -102,14 +105,15 @@ public class ProductDAO {
 
     // Update product
     public boolean updateProduct(Product product) {
-        String sql = "UPDATE products SET name = ?, description = ?, quantity = ?, category_id = ?, image = ? WHERE id = ?";
+        String sql = "UPDATE products SET name = ?, description = ?, quantity = ?, category_id = ?, image = ?, price = ? WHERE id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, product.getName());
             statement.setString(2, product.getDescription());
             statement.setInt(3, product.getQuantity());
             statement.setInt(4, product.getCategoryId());
-            statement.setBytes(5, product.getImage()); // Use getImage() for byte array
-            statement.setInt(6, product.getId());
+            statement.setBytes(5, product.getImage());
+            statement.setDouble(6, product.getPrice());
+            statement.setInt(7, product.getId());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -145,6 +149,7 @@ public class ProductDAO {
                 product.setId(resultSet.getInt("id"));
                 product.setName(resultSet.getString("name"));
                 product.setDescription(resultSet.getString("description"));
+                product.setPrice(resultSet.getDouble("price"));
                 product.setQuantity(resultSet.getInt("quantity"));
                 product.setCategoryId(resultSet.getInt("category_id"));
                 product.setCategoryName(resultSet.getString("category_name"));
@@ -179,6 +184,7 @@ public class ProductDAO {
                 product.setId(resultSet.getInt("id"));
                 product.setName(resultSet.getString("name"));
                 product.setDescription(resultSet.getString("description"));
+                product.setPrice(resultSet.getDouble("price"));
                 product.setQuantity(resultSet.getInt("quantity"));
                 product.setCategoryId(resultSet.getInt("category_id"));
                 product.setCategoryName(resultSet.getString("category_name"));

@@ -150,6 +150,15 @@
                                 </div>
                                 
                                 <div class="row mb-3">
+								    <div class="col-md-6">
+								        <label for="price" class="form-label">Price (Rs.) <span class="text-danger">*</span></label>
+								        <input type="number" class="form-control" id="price" name="price" 
+                         					value="${product.price}" step="0.01" min="0" required>
+								    </div>
+								    <!-- Keep existing fields -->
+								</div>
+                                
+                                <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" id="quantity" name="quantity" 
@@ -269,6 +278,13 @@
                     reader.readAsDataURL(file);
                 }
             });
+        });
+        
+        $('#price').on('blur', function() {
+            let value = $(this).val();
+            if(value && !isNaN(value)) {
+                $(this).val(parseFloat(value).toFixed(2));
+            }
         });
     </script>
 </body>

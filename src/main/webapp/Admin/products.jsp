@@ -51,6 +51,10 @@
         .table-warning {
             background-color: #fff3cd !important;
         }
+        .price-column {
+		    text-align: right;
+		    white-space: nowrap;
+		}
     </style>
 
 
@@ -170,6 +174,7 @@
                         <th scope="col">Name</th>
                         <th scope="col">Category</th>
                         <th scope="col">Description</th>
+                        <th scope="col">Price</th>
                         <th scope="col">Quantity</th>
                         <th scope="col">Actions</th>
                     </tr>
@@ -199,6 +204,7 @@
                                     </td>
                                     <td>${product.name}</td>
                                     <td>${product.categoryName}</td>
+                                   
                                     <td>
                                         <c:choose>
                                             <c:when test="${fn:length(product.description) > 100}">
@@ -209,6 +215,9 @@
                                             </c:otherwise>
                                         </c:choose>
                                     </td>
+                                     <td class="price-column">
+									    Rs. ${product.price}
+									</td>
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <span class="me-2">${product.quantity}</span>
@@ -295,6 +304,7 @@
                     { orderable: false, targets: [1, 6] }, // Make image and actions columns not sortable
                     { width: "80px", targets: [0] }, // ID column width
                     { width: "100px", targets: [1] }, // Image column width
+                    { type: 'currency', targets: 4 },
                     { width: "150px", targets: [6] } // Actions column width
                 ],
                 language: {
@@ -333,6 +343,13 @@
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
             });
+        });
+        
+        $('#price').on('blur', function() {
+            let value = $(this).val();
+            if(value && !isNaN(value)) {
+                $(this).val(parseFloat(value).toFixed(2));
+            }
         });
     </script>
 </body>

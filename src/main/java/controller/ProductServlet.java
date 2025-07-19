@@ -119,13 +119,16 @@ public class ProductServlet extends HttpServlet {
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         Part filePart = request.getPart("image");
         byte[] imageBytes = filePart.getInputStream().readAllBytes();
-
+        double price = Double.parseDouble(request.getParameter("price"));
+        
+        
         Product newProduct = new Product();
         newProduct.setName(name);
         newProduct.setDescription(description);
         newProduct.setQuantity(quantity);
         newProduct.setCategoryId(categoryId);
         newProduct.setImage(imageBytes);
+        newProduct.setPrice(price);
 
         if (productDAO.addProduct(newProduct)) {
             response.sendRedirect("products?action=list");
@@ -138,16 +141,20 @@ public class ProductServlet extends HttpServlet {
     private void updateProduct(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         int id = Integer.parseInt(request.getParameter("id"));
         String name = request.getParameter("name");
+        double price = Double.parseDouble(request.getParameter("price"));
         String description = request.getParameter("description");
         int quantity = Integer.parseInt(request.getParameter("quantity"));
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         Part filePart = request.getPart("image");
-
+        
+        
         Product product = productDAO.getProductById(id);
         product.setName(name);
+        product.setPrice(price);
         product.setDescription(description);
         product.setQuantity(quantity);
         product.setCategoryId(categoryId);
+        
 
         // Only update image if a new one was uploaded
         if (filePart != null && filePart.getSize() > 0) {

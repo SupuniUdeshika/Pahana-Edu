@@ -9,6 +9,7 @@ public class Product {
     private String categoryName;
     private byte[] image;
     private String imageBase64; // This field must exist
+    private double price;
     
     // Constructors
     public Product() {}
@@ -20,6 +21,7 @@ public class Product {
         this.quantity = quantity;
         this.categoryId = categoryId;
         this.image = image;
+        this.price = price;
     }
     
     // Getters and Setters
@@ -49,4 +51,7 @@ public class Product {
     public void setImageBase64(String imageBase64) { 
         this.imageBase64 = imageBase64; 
     }
+    
+    public double getPrice() { return price; }
+    public void setPrice(double price) { this.price = price; }
 }
