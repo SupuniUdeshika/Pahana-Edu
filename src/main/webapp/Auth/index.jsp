@@ -63,7 +63,7 @@
                         </div>
                         <form action="${pageContext.request.contextPath}/LoginServlet" method="POST">
                             <div class="form-floating mb-3">
-                                <input type="email" class="form-control" id="floatingInput" name="email" placeholder="name@example.com" required>
+                                <input type="text" class="form-control" id="floatingInput" name="email" placeholder="name@example.com" required>
                                 <label for="floatingInput">Email address</label>
                             </div>
                             <div class="form-floating mb-4">

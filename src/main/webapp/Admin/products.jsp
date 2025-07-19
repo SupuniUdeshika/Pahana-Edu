@@ -1,12 +1,13 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <title>${category == null ? 'Add New' : 'Edit'} Category - Book Management System</title>
+    <title>Product Management - Book Management System</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -32,6 +33,27 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+
+  <style>
+        .product-image {
+            width: 80px;
+            height: 100px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .table-danger {
+            background-color: #f8d7da !important;
+        }
+        .table-warning {
+            background-color: #fff3cd !important;
+        }
+    </style>
+
+
 </head>
 
 <body>
@@ -61,7 +83,7 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="navbar-brand mx-4 mb-3">
+                <a href="${pageContext.request.contextPath}/Admin/dashboard.jsp" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Admin Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -77,8 +99,8 @@
                 <div class="navbar-nav w-100">
                     <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/product" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/categories.jsp" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link active"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
@@ -90,7 +112,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -117,35 +139,107 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <h3 class="mb-4">${category == null ? 'Add New' : 'Edit'} Category</h3>
-                            
-                            <form action="categories" method="post">
-                                <input type="hidden" name="action" value="${category == null ? 'insert' : 'update'}">
-                                <c:if test="${category != null}">
-                                    <input type="hidden" name="id" value="${category.id}">
-                                </c:if>
-                                
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name" 
-                                           value="${category.name}" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" 
-                                              rows="3">${category.description}</textarea>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-save me-2"></i>${category == null ? 'Add' : 'Update'} Category
-                                    </button>
-                                    <a href="categories" class="btn btn-secondary">
-                                        <i class="fa fa-times me-2"></i>Cancel
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h3 class="mb-0">Product Management</h3>
+                                <div>
+                                    <a href="products?action=lowstock" class="btn btn-warning me-2">
+                                        <i class="fa fa-exclamation-triangle me-2"></i>Low Stock
+                                    </a>
+                                    <a href="products?action=new" class="btn btn-primary">
+                                        <i class="fa fa-plus me-2"></i>Add New Product
                                     </a>
                                 </div>
+                            </div>
+                            
+                            <!-- Search Form -->
+                            <form action="products" method="get" class="mb-4">
+                                <input type="hidden" name="action" value="search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search products..." name="keyword" value="${param.keyword}">
+                                    <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
+                                </div>
                             </form>
+                            
+                            <!-- Products Table -->
+                             <div class="table-responsive">
+            <table class="table table-hover" id="productTable">
+                <thead>
+                    <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Image</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Category</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:choose>
+                        <c:when test="${empty products}">
+                            <tr>
+                                <td colspan="7" class="text-center">No products found</td>
+                            </tr>
+                        </c:when>
+                        <c:otherwise>
+                            <c:forEach var="product" items="${products}">
+                                <tr class="${product.quantity == 0 ? 'table-danger' : (product.quantity <= 5 ? 'table-warning' : '')}">
+                                    <td>${product.id}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${product.image != null}">
+                                                <img src="data:image/jpeg;base64,${product.imageBase64}" class="product-image">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <img src="${pageContext.request.contextPath}/img/default-product.png" 
+                                                     alt="No image" 
+                                                     class="product-image">
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>${product.name}</td>
+                                    <td>${product.categoryName}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${fn:length(product.description) > 100}">
+                                                ${fn:substring(product.description, 0, 100)}...
+                                            </c:when>
+                                            <c:otherwise>
+                                                ${product.description}
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="me-2">${product.quantity}</span>
+                                            <c:if test="${product.quantity == 0}">
+                                                <span class="badge bg-danger">Out of Stock</span>
+                                            </c:if>
+                                            <c:if test="${product.quantity <= 5 && product.quantity > 0}">
+                                                <span class="badge bg-warning text-dark">Low Stock</span>
+                                            </c:if>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex">
+                                            <a href="products?action=edit&id=${product.id}" class="btn btn-sm btn-warning me-2" 
+                                               data-bs-toggle="tooltip" title="Edit">
+                                                <i class="fa fa-edit"></i>
+                                            </a>
+                                            <a href="products?action=delete&id=${product.id}" class="btn btn-sm btn-danger" 
+                                               onclick="return confirm('Are you sure you want to delete this product?')"
+                                               data-bs-toggle="tooltip" title="Delete">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
+                </tbody>
+            </table>
+        </div>
                         </div>
                     </div>
                 </div>
@@ -160,7 +254,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>${category == null ? 'Add New' : 'Edit'} Category</span>
+                            <span>Product Management</span>
                         </div>
                     </div>
                 </div>
@@ -183,12 +277,38 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
-        $(document).ready(function() {
+        
+            
+         // Initialize DataTable with more options
+            $('#productTable').DataTable({
+                responsive: true,
+                columnDefs: [
+                    { orderable: false, targets: [1, 6] }, // Make image and actions columns not sortable
+                    { width: "80px", targets: [0] }, // ID column width
+                    { width: "100px", targets: [1] }, // Image column width
+                    { width: "150px", targets: [6] } // Actions column width
+                ],
+                language: {
+                    search: "Search products:",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    paginate: {
+                        previous: "Previous",
+                        next: "Next"
+                    }
+                },
+                dom: '<"top"lf>rt<"bottom"ip><"clear">'
+            });
+            
             // Handle logout
             $('a[href$="logout"]').on('click', function(e) {
                 e.preventDefault();

@@ -77,7 +77,7 @@
                <div class="navbar-nav w-100">
 				    <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
 				    <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
-				    <a href="${pageContext.request.contextPath}/admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+				    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
 				    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
 				    <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
 				    <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
@@ -131,13 +131,21 @@
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <div class="card bg-success text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Books</h5>
-                                            <h2 class="mb-0">${totalBooks}</h2>
-                                        </div>
-                                    </div>
-                                </div>
+								    <div class="card bg-info text-white mb-4">
+								        <div class="card-body text-center">
+								            <h5 class="card-title">Total Books</h5>
+								            <h2 class="mb-0">${totalProducts}</h2>
+								        </div>
+								    </div>
+								</div>
+								<div class="col-md-3">
+								    <div class="card bg-danger text-white mb-4">
+								        <div class="card-body text-center">
+								            <h5 class="card-title">Low Stock</h5>
+								            <h2 class="mb-0">${lowStockProducts}</h2>
+								        </div>
+								    </div>
+								</div>
                                 <div class="col-md-3">
                                     <div class="card bg-warning text-white mb-4">
                                         <div class="card-body text-center">

@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>${category == null ? 'Add New' : 'Edit'} Category - Book Management System</title>
+    <title>${product == null ? 'Add New' : 'Edit'} Product - Book Management System</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -77,8 +77,9 @@
                 <div class="navbar-nav w-100">
                     <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/product" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/categories.jsp" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/admin/products" class="nav-item nav-link active"><i class="fa fa-box me-2"></i>Product Management</a>
                     <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
@@ -117,31 +118,73 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <h3 class="mb-4">${category == null ? 'Add New' : 'Edit'} Category</h3>
+                            <h3 class="mb-4">${product == null ? 'Add New' : 'Edit'} Product</h3>
                             
-                            <form action="categories" method="post">
-                                <input type="hidden" name="action" value="${category == null ? 'insert' : 'update'}">
-                                <c:if test="${category != null}">
-                                    <input type="hidden" name="id" value="${category.id}">
+                            <c:if test="${not empty error}">
+                                <div class="alert alert-danger">${error}</div>
+                            </c:if>
+                            
+                            <form action="products" method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="action" value="${product == null ? 'insert' : 'update'}">
+                                <c:if test="${product != null}">
+                                    <input type="hidden" name="id" value="${product.id}">
                                 </c:if>
                                 
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name" 
-                                           value="${category.name}" required>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name" 
+                                               value="${product.name}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="categoryId" class="form-label">Category <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="categoryId" name="categoryId" required>
+                                            <option value="">Select Category</option>
+                                            <c:forEach var="category" items="${categories}">
+                                                <option value="${category.id}" ${product != null && product.categoryId == category.id ? 'selected' : ''}>
+                                                    ${category.name}
+                                                </option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="quantity" name="quantity" 
+                                               value="${product != null ? product.quantity : 0}" min="0" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="image" class="form-label">Product Image</label>
+                                        <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                                        <c:if test="${product != null && product.image != null}">
+                                            <small class="text-muted">Current image will be kept if no new image is uploaded.</small>
+                                        </c:if>
+                                    </div>
                                 </div>
                                 
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Description</label>
                                     <textarea class="form-control" id="description" name="description" 
-                                              rows="3">${category.description}</textarea>
+                                              rows="3">${product.description}</textarea>
                                 </div>
+                                
+                                <c:if test="${product != null && product.image != null}">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Image</label>
+                                        <div>
+                                        <img src="data:image/jpeg;base64,${product.imageBase64}" class="product-image" style="max-width: 200px; max-height: 200px;">
+                                            
+                                        </div>
+                                    </div>
+                                </c:if>
                                 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-save me-2"></i>${category == null ? 'Add' : 'Update'} Category
+                                        <i class="fa fa-save me-2"></i>${product == null ? 'Add' : 'Update'} Product
                                     </button>
-                                    <a href="categories" class="btn btn-secondary">
+                                    <a href="products" class="btn btn-secondary">
                                         <i class="fa fa-times me-2"></i>Cancel
                                     </a>
                                 </div>
@@ -160,7 +203,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>${category == null ? 'Add New' : 'Edit'} Category</span>
+                            <span>${product == null ? 'Add New' : 'Edit'} Product</span>
                         </div>
                     </div>
                 </div>
@@ -212,6 +255,19 @@
             $('.back-to-top').click(function() {
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
+            });
+            
+            // Preview image before upload
+            $('#image').change(function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('.image-preview').remove();
+                        $('#image').after('<div class="image-preview mt-2"><img src="' + e.target.result + '" style="max-width: 200px; max-height: 200px;"></div>');
+                    }
+                    reader.readAsDataURL(file);
+                }
             });
         });
     </script>
