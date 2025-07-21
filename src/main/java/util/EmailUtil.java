@@ -1,12 +1,8 @@
 package util;
 
-
 import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.*;
-
-
-
 
 public class EmailUtil {
     private static final String SMTP_HOST = "smtp.gmail.com";
@@ -38,5 +34,17 @@ public class EmailUtil {
         } catch (MessagingException e) {
             throw new RuntimeException("Failed to send email", e);
         }
+    }
+    
+    public static void sendCustomerWelcomeEmail(String customerEmail, String customerName) {
+        String subject = "Welcome to Pahana Edu - Membership Confirmation";
+        String content = "Dear " + customerName + ",\n\n"
+                + "Thank you for registering with Pahana Edu! Your membership has been successfully created.\n\n"
+                + "We're excited to have you as part of our community. You can now enjoy all the benefits of our services.\n\n"
+                + "If you have any questions or need assistance, please don't hesitate to contact us.\n\n"
+                + "Best regards,\n"
+                + "Pahana Edu Team";
+        
+        sendEmail(customerEmail, subject, content);
     }
 }

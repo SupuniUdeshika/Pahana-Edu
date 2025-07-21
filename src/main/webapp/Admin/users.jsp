@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Admin Dashboard - Book Management System</title>
+    <title>Employee Management - Pahana Edu</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -32,6 +32,9 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
 </head>
 
 <body>
@@ -61,7 +64,7 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand mx-4 mb-3">
+                <a href="${pageContext.request.contextPath}/Admin/dashboard.jsp" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Admin Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -75,8 +78,8 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/dashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link active"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
@@ -106,7 +109,7 @@
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
                             <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
-                            <a href="${pageContext.request.contextPath}/Auth/index.jsp" class="dropdown-item">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -118,51 +121,69 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <h3 class="mb-4">Welcome, ${sessionScope.user.name}!</h3>
-                            <p>You are logged in as an administrator. Use the sidebar to navigate through the system.</p>
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h3 class="mb-0">Employee Management</h3>
+                                <a href="${pageContext.request.contextPath}/Admin/users?action=new" class="btn btn-primary">
+								    <i class="fa fa-plus me-2"></i>Add New Employee
+								</a>
+                            </div>
                             
-                            <!-- Quick Stats -->
-                            <div class="row mt-4">
-                                <div class="col-md-3">
-                                    <div class="card bg-primary text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Users</h5>
-                                            <h2 class="mb-0">${totalUsers}</h2>
-                                        </div>
-                                    </div>
+                            <!-- Search Form -->
+                            <form action="${pageContext.request.contextPath}/Admin/users" method="get" class="mb-4">
+                                <input type="hidden" name="action" value="search">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search employees..." name="keyword" value="${param.keyword}">
+                                    <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-info text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Books</h5>
-                                            <h2 class="mb-0">${totalProducts}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Low Stock</h5>
-                                            <h2 class="mb-0">${lowStockProducts}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-warning text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Active Loans</h5>
-                                            <h2 class="mb-0">${activeLoans}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Overdue</h5>
-                                            <h2 class="mb-0">${overdueItems}</h2>
-                                        </div>
-                                    </div>
-                                </div>
+                            </form>
+                            
+                            <!-- Users Table -->
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="userTable">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Role</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:choose>
+                                            <c:when test="${empty users}">
+                                                <tr>
+                                                    <td colspan="6" class="text-center">No employees found</td>
+                                                </tr>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <c:forEach var="user" items="${users}">
+                                                    <tr>
+                                                        <td>${user.id}</td>
+                                                        <td>${user.name}</td>
+                                                        <td>${user.email}</td>
+                                                        <td>${user.role}</td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${user.verified}">
+                                                                    <span class="badge bg-success">Verified</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <span class="badge bg-warning">Pending</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td>
+                                                            <a href="${pageContext.request.contextPath}/Admin/users?action=edit&id=${user.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
+                                                            <a href="${pageContext.request.contextPath}/Admin/users?action=delete&id=${user.id}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this employee?')"><i class="fa fa-trash"></i></a>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -178,7 +199,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>Admin Dashboard</span>
+                            <span>Employee Management</span>
                         </div>
                     </div>
                 </div>
@@ -201,12 +222,24 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
         $(document).ready(function() {
+            // Initialize DataTable
+            $('#userTable').DataTable({
+                responsive: true,
+                columnDefs: [
+                    { orderable: false, targets: [5] } // Make actions column not sortable
+                ]
+            });
+            
             // Handle logout
             $('a[href$="logout"]').on('click', function(e) {
                 e.preventDefault();

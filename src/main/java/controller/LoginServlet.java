@@ -97,7 +97,7 @@ public class LoginServlet extends HttpServlet {
         String contextPath = request.getContextPath();
         return "ADMIN".equals(user.getRole()) ? 
             contextPath + "/Admin/Admindashboard.jsp" : 
-            contextPath + "/cashier/dashboard.jsp";
+            contextPath + "/cashier/Cashierdashboard.jsp";
     }
     
     private void redirectBasedOnRole(HttpServletRequest request, HttpServletResponse response, User user) throws IOException {

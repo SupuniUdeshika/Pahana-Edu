@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Admin Dashboard - Book Management System</title>
+    <title>${empty user.id or user.id == 0 ? 'Add New' : 'Edit'} Employee - Pahana Edu</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -61,7 +61,7 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand mx-4 mb-3">
+                <a href="${pageContext.request.contextPath}/Admin/dashboard.jsp" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Admin Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -75,8 +75,8 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link active"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
@@ -106,7 +106,7 @@
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
                             <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
-                            <a href="${pageContext.request.contextPath}/Auth/index.jsp" class="dropdown-item">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -118,52 +118,54 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <h3 class="mb-4">Welcome, ${sessionScope.user.name}!</h3>
-                            <p>You are logged in as an administrator. Use the sidebar to navigate through the system.</p>
+                           <h3 class="mb-4">${empty user.id or user.id == 0 ? 'Add New' : 'Edit'} Employee</h3>
                             
-                            <!-- Quick Stats -->
-                            <div class="row mt-4">
-                                <div class="col-md-3">
-                                    <div class="card bg-primary text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Users</h5>
-                                            <h2 class="mb-0">${totalUsers}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-info text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Books</h5>
-                                            <h2 class="mb-0">${totalProducts}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Low Stock</h5>
-                                            <h2 class="mb-0">${lowStockProducts}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-warning text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Active Loans</h5>
-                                            <h2 class="mb-0">${activeLoans}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Overdue</h5>
-                                            <h2 class="mb-0">${overdueItems}</h2>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <form action="${pageContext.request.contextPath}/Admin/users" method="post">
+							    <input type="hidden" name="action" value="${empty user.id or user.id == 0 ? 'insert' : 'update'}">
+							    
+							    <c:if test="${not empty user.id and user.id != 0}">
+							        <input type="hidden" name="id" value="${user.id}">
+							    </c:if>
+							    
+							    <div class="mb-3">
+							        <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+							        <input type="text" class="form-control" id="name" name="name" 
+							               value="${user.name}" required>
+							    </div>
+							    
+							    <div class="mb-3">
+							        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+							        <input type="email" class="form-control" id="email" name="email" 
+							               value="${user.email}" required>
+							    </div>
+							    
+							     <div class="mb-3">
+								    <label for="password" class="form-label">Password 
+								        <span class="text-danger">${empty user.id or user.id == 0 ? '*' : ''}</span>
+								    </label>
+								    <input type="password" class="form-control" id="password" name="password" 
+								           ${empty user.id or user.id == 0 ? 'required' : ''}>
+								    <small class="text-muted">${not empty user.id and user.id != 0 ? 'Leave blank to keep current password' : ''}</small>
+								</div>
+							    
+							    <div class="mb-3">
+							        <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+							        <select class="form-select" id="role" name="role" required>
+							            <option value="">Select Role</option>
+							            <option value="ADMIN" ${user.role == 'ADMIN' ? 'selected' : ''}>Admin</option>
+							            <option value="CASHIER" ${user.role == 'CASHIER' ? 'selected' : ''}>Cashier</option>
+							        </select>
+							    </div>
+							    
+							    <div class="d-flex justify-content-between">
+							        <button type="submit" class="btn btn-primary">
+							            <i class="fa fa-save me-2"></i>${empty user.id or user.id == 0 ? 'Add Employee' : 'Update Employee'}
+							        </button>
+							        <a href="${pageContext.request.contextPath}/Admin/users" class="btn btn-secondary">
+							            <i class="fa fa-times me-2"></i>Cancel
+							        </a>
+							    </div>
+							</form>
                         </div>
                     </div>
                 </div>
@@ -178,7 +180,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>Admin Dashboard</span>
+                            <span>${user == null ? 'Add New' : 'Edit'} Employee</span>
                         </div>
                     </div>
                 </div>
