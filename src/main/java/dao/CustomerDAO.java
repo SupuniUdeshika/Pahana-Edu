@@ -7,6 +7,15 @@ import java.util.List;
 
 public class CustomerDAO {
     private Connection connection;
+    
+    public CustomerDAO() {
+        try {
+            this.connection = DatabaseConnection.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to initialize database connection", e);
+        }
+    }
 
     public CustomerDAO(Connection connection) {
         this.connection = connection;

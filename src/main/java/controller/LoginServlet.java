@@ -98,7 +98,7 @@ public class LoginServlet extends HttpServlet {
         if ("ADMIN".equals(user.getRole())) {
             return contextPath + "/Admin/Admindashboard.jsp";
         } else if ("CASHIER".equals(user.getRole())) {
-            return contextPath + "/Cashier/Cashierdashboard.jsp";
+            return contextPath + "/cashier/Cashierdashboard.jsp";
         }
         return contextPath + "/Auth/index.jsp"; // Default fallback
     }

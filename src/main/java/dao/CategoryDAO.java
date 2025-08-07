@@ -7,6 +7,8 @@ import java.util.List;
 
 public class CategoryDAO {
     private Connection connection;
+    
+    
 
     public CategoryDAO() {
         try {

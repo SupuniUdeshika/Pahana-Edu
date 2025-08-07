@@ -32,6 +32,40 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+
+
+   <style>
+        .product-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: scale(1.02);
+        }
+        .cart-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        #customerSearchResults {
+            position: absolute;
+            z-index: 1000;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            display: none;
+        }
+        .customer-result {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .customer-result:hover {
+            background-color: #f5f5f5;
+        }
+    </style>
+
+
 </head>
 
 <body>
@@ -53,7 +87,7 @@
             </c:when>
             <c:when test="${sessionScope.user.role ne 'ADMIN'}">
                 <script>
-                    window.location.href = "${pageContext.request.contextPath}/cashier/dashboard.jsp";
+                    window.location.href = "${pageContext.request.contextPath}/Cashier/Cashierdashboard";
                 </script>
             </c:when>
         </c:choose>
@@ -78,7 +112,7 @@
                     <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>

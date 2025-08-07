@@ -71,7 +71,7 @@ public class CashierCustomerServlet extends HttpServlet {
             throws ServletException, IOException, SQLException {
         List<Customer> customers = customerDAO.getAllCustomers();
         request.setAttribute("customers", customers);
-        request.getRequestDispatcher("/Cashier/customers.jsp").forward(request, response);
+        request.getRequestDispatcher("/cashier/customers.jsp").forward(request, response);
     }
     
     private void searchCustomers(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
@@ -79,14 +79,14 @@ public class CashierCustomerServlet extends HttpServlet {
         String keyword = request.getParameter("keyword");
         List<Customer> customers = customerDAO.searchCustomers(keyword);
         request.setAttribute("customers", customers);
-        request.getRequestDispatcher("/Cashier/customers.jsp").forward(request, response);
+        request.getRequestDispatcher("/cashier/customers.jsp").forward(request, response);
     }
     
     private void showNewForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         Customer customer = new Customer();
         request.setAttribute("customer", customer);
-        request.getRequestDispatcher("/Cashier/customer-form.jsp").forward(request, response);
+        request.getRequestDispatcher("/cashier/customer-form.jsp").forward(request, response);
     }
     
     private void showEditForm(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
@@ -94,7 +94,7 @@ public class CashierCustomerServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         Customer customer = customerDAO.getCustomerById(id);
         request.setAttribute("customer", customer);
-        request.getRequestDispatcher("/Cashier/customer-form.jsp").forward(request, response);
+        request.getRequestDispatcher("/cashier/customer-form.jsp").forward(request, response);
     }
     
     private void insertCustomer(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
