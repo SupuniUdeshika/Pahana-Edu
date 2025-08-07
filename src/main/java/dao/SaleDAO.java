@@ -3,8 +3,13 @@ package dao;
 import model.Sale;
 import model.SaleItem;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Date;
 
 public class SaleDAO {
     private Connection connection;
@@ -12,6 +17,7 @@ public class SaleDAO {
     public SaleDAO() throws SQLException {
         this.connection = DatabaseConnection.getConnection();
     }
+
 
     // Create a new sale
     public int createSale(Sale sale) throws SQLException {
@@ -149,4 +155,64 @@ public class SaleDAO {
         sale.setPaymentMethod(resultSet.getString("payment_method"));
         return sale;
     }
+    
+    public List<Sale> getSalesByDateRange(Date startDate, Date endDate) throws SQLException {
+        List<Sale> sales = new ArrayList<>();
+        String sql = "SELECT s.*, c.name as customer_name FROM sales s " +
+                     "LEFT JOIN customers c ON s.customer_id = c.id " +
+                     "WHERE s.sale_date BETWEEN ? AND ? " +
+                     "ORDER BY s.sale_date DESC";
+        
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setTimestamp(1, new Timestamp(startDate.getTime()));
+            statement.setTimestamp(2, new Timestamp(endDate.getTime()));
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    Sale sale = extractSaleFromResultSet(resultSet);
+                    sale.setItems(getSaleItems(sale.getId()));
+                    sales.add(sale);
+                }
+            }
+        }
+        return sales;
+    }
+
+    public Map<String, Double> getDailySalesSummary(Date startDate, Date endDate) throws SQLException {
+        Map<String, Double> dailySales = new LinkedHashMap<>();
+        
+        // First initialize all dates in range with 0.0
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(startDate);
+        
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        while (!cal.getTime().after(endDate)) {
+            dailySales.put(dateFormat.format(cal.getTime()), 0.0);
+            cal.add(Calendar.DATE, 1);
+        }
+        
+        // Then get actual sales data
+        String sql = "SELECT DATE(sale_date) as sale_date, SUM(total_amount) as daily_total " +
+                     "FROM sales " +
+                     "WHERE sale_date BETWEEN ? AND ? " +
+                     "GROUP BY DATE(sale_date) " +
+                     "ORDER BY DATE(sale_date)";
+        
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setTimestamp(1, new Timestamp(startDate.getTime()));
+            statement.setTimestamp(2, new Timestamp(endDate.getTime()));
+            
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    String dateStr = resultSet.getString("sale_date");
+                    double total = resultSet.getDouble("daily_total");
+                    dailySales.put(dateStr, total);
+                }
+            }
+        }
+        
+        return dailySales;
+    }
+    
+
 }
