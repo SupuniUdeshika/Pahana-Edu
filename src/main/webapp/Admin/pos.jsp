@@ -148,7 +148,7 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/Admin/Cashierdashboard.jsp" class="navbar-brand mx-4 mb-3">
+                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Cashier Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -167,9 +167,9 @@
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/pos" class="nav-item nav-link active"><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
-				    <a href="${pageContext.request.contextPath}/Admin/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
-                    <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link active"><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+				    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
@@ -180,7 +180,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/ <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>/Cashierdashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -342,7 +342,7 @@
         const categoryId = $('#category-filter').val();
         
         $.ajax({
-            url: '${pageContext.request.contextPath}/Admin/search-products',
+            url: '${pageContext.request.contextPath}/AdminCashier/search-products',
             type: 'GET',
             data: { keyword: keyword, categoryId: categoryId },
             success: function(response) {
@@ -359,7 +359,7 @@
         }
         
         $.ajax({
-            url: '${pageContext.request.contextPath}/Admin/search-customers',
+            url: '${pageContext.request.contextPath}/AdminCashier/search-customers',
             type: 'GET',
             data: { keyword: keyword },
             success: function(response) {
@@ -547,7 +547,7 @@
         
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '${pageContext.request.contextPath}/Admin/process-sale';
+        form.action = '${pageContext.request.contextPath}/AdminCashier/process-sale';
         
         // Add customer ID
         const customerIdInput = document.createElement('input');
