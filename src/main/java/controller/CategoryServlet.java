@@ -74,6 +74,14 @@ public class CategoryServlet extends HttpServlet {
     private void listCategories(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         List<Category> categories = categoryDAO.getAllCategories();
         request.setAttribute("categories", categories);
+        
+        // Check for success message from session
+        String successMessage = (String) request.getSession().getAttribute("successMessage");
+        if (successMessage != null) {
+            request.setAttribute("successMessage", successMessage);
+            request.getSession().removeAttribute("successMessage");
+        }
+        
         RequestDispatcher dispatcher = request.getRequestDispatcher("/Admin/categories.jsp");
         dispatcher.forward(request, response);
     }
@@ -100,6 +108,9 @@ public class CategoryServlet extends HttpServlet {
         newCategory.setDescription(description);
         
         categoryDAO.addCategory(newCategory);
+        
+        // Set success message in session
+        request.getSession().setAttribute("successMessage", "Category added successfully!");
         response.sendRedirect(request.getContextPath() + "/Admin/categories");
     }
 
@@ -110,12 +121,18 @@ public class CategoryServlet extends HttpServlet {
         
         Category category = new Category(id, name, description);
         categoryDAO.updateCategory(category);
+        
+        // Set success message in session
+        request.getSession().setAttribute("successMessage", "Category updated successfully!");
         response.sendRedirect(request.getContextPath() + "/Admin/categories");
     }
 
     private void deleteCategory(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         categoryDAO.deleteCategory(id);
+        
+        // Set success message in session
+        request.getSession().setAttribute("successMessage", "Category deleted successfully!");
         response.sendRedirect(request.getContextPath() + "/Admin/categories");
     }
 

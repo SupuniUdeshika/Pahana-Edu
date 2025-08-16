@@ -32,6 +32,27 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+    
+    <style>
+        .alert-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { right: -100%; }
+            to { right: 20px; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
 </head>
 
 <body>
@@ -119,7 +140,7 @@
                         <div class="bg-secondary rounded p-4">
                             <h3 class="mb-4">${category == null ? 'Add New' : 'Edit'} Category</h3>
                             
-                            <form action="categories" method="post">
+                            <form action="${pageContext.request.contextPath}/Admin/categories" method="post" id="categoryForm">
                                 <input type="hidden" name="action" value="${category == null ? 'insert' : 'update'}">
                                 <c:if test="${category != null}">
                                     <input type="hidden" name="id" value="${category.id}">
@@ -141,7 +162,7 @@
                                     <button type="submit" class="btn btn-primary">
                                         <i class="fa fa-save me-2"></i>${category == null ? 'Add' : 'Update'} Category
                                     </button>
-                                    <a href="categories" class="btn btn-secondary">
+                                    <a href="${pageContext.request.contextPath}/Admin/categories" class="btn btn-secondary">
                                         <i class="fa fa-times me-2"></i>Cancel
                                     </a>
                                 </div>
@@ -212,6 +233,31 @@
             $('.back-to-top').click(function() {
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
+            });
+            
+            // Form submission handling
+            $('#categoryForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Simple client-side validation
+                if ($('#name').val().trim() === '') {
+                    alert('Category name is required!');
+                    return false;
+                }
+                
+                // Submit form via AJAX for better UX
+                $.ajax({
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Redirect to categories list after successful submission
+                        window.location.href = '${pageContext.request.contextPath}/Admin/categories';
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                    }
+                });
             });
         });
     </script>
