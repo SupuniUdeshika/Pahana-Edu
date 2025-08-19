@@ -33,8 +33,10 @@
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
 
-
-   <style>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
         .product-card {
             cursor: pointer;
             transition: transform 0.2s;
@@ -63,9 +65,99 @@
         .customer-result:hover {
             background-color: #f5f5f5;
         }
+        
+        /* New styles for dashboard */
+       .stat-card {
+        transition: all 0.3s;
+        border-radius: 10px;
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #2d3748; /* Dark blue-gray background */
+        color: #fff; /* White text */
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        background-color: #3c4657; /* Slightly lighter on hover */
+    }
+    
+    .stat-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .stat-card .card-title {
+        font-size: 1rem;
+        color: #a0aec0; /* Light gray for titles */
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-card .card-value {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #fff; /* White for values */
+    }
+    
+    .stat-card .card-icon {
+        font-size: 2rem;
+        opacity: 0.5;
+        position: absolute;
+        right: 1.5rem;
+        top: 1.5rem;
+        color: #fff; /* White icons */
+    }
+    
+    /* Border colors for each card type */
+    .stat-card.border-left-primary {
+        border-left: 4px solid #4299e1 !important; /* Blue */
+    }
+    
+    .stat-card.border-left-success {
+        border-left: 4px solid #48bb78 !important; /* Green */
+    }
+    
+    .stat-card.border-left-warning {
+        border-left: 4px solid #ed8936 !important; /* Orange */
+    }
+    
+    .stat-card.border-left-info {
+        border-left: 4px solid #0bc5ea !important; /* Cyan */
+    }
+    
+    /* Chart container */
+    .chart-container {
+        background-color: #2d3748;
+        border-radius: 10px;
+        padding: 20px;
+        height: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Main content area */
+    .bg-secondary.rounded.p-4 {
+        background-color: #1a202c !important; /* Darker background */
+        color: #fff;
+    }
+    
+    /* Text colors for better contrast */
+    h3, h6, p {
+        color: #fff !important;
+    }
+        
+        .chart-container {
+            background-color: #2d3748;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+        }
+        
+        canvas#salesChart {
+            background-color: #2d3748;
+        }
     </style>
-
-
 </head>
 
 <body>
@@ -109,13 +201,13 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
-				    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
                     <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
@@ -127,7 +219,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -159,44 +251,84 @@
                             
                             <!-- Quick Stats -->
                             <div class="row mt-4">
-                                <div class="col-md-3">
-                                    <div class="card bg-primary text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Users</h5>
-                                            <h2 class="mb-0">${totalUsers}</h2>
+                                <!-- Total Categories Card -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card stat-card border-left-primary shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                        Total Categories</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800 card-value">${totalCategories}</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-tags fa-2x text-gray-300 card-icon"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-info text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Total Books</h5>
-                                            <h2 class="mb-0">${totalProducts}</h2>
+
+                                <!-- Total Products Card -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card stat-card border-left-success shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                        Total Products</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800 card-value">${totalProducts}</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-book fa-2x text-gray-300 card-icon"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Low Stock</h5>
-                                            <h2 class="mb-0">${lowStockProducts}</h2>
+
+                                <!-- Low Stock Products Card -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card stat-card border-left-warning shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                        Low Stock Products</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800 card-value">${lowStockProducts}</div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-exclamation-triangle fa-2x text-gray-300 card-icon"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-warning text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Active Loans</h5>
-                                            <h2 class="mb-0">${activeLoans}</h2>
+
+                                <!-- Total Sales Card -->
+                                <div class="col-xl-3 col-md-6 mb-4">
+                                    <div class="card stat-card border-left-info shadow h-100 py-2">
+                                        <div class="card-body">
+                                            <div class="row no-gutters align-items-center">
+                                                <div class="col mr-2">
+                                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                        Total Sales (This Month)</div>
+                                                    <div class="h5 mb-0 font-weight-bold text-gray-800 card-value">Rs. <fmt:formatNumber value="${totalSales}" pattern="#,##0.00"/></div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <i class="fas fa-dollar-sign fa-2x text-gray-300 card-icon"></i>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-danger text-white mb-4">
-                                        <div class="card-body text-center">
-                                            <h5 class="card-title">Overdue</h5>
-                                            <h2 class="mb-0">${overdueItems}</h2>
-                                        </div>
+                            </div>
+                            
+                            <!-- Sales Chart -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="chart-container">
+                                        <canvas id="salesChart"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -266,6 +398,78 @@
             $('.back-to-top').click(function() {
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
+            });
+            
+            // Initialize Sales Chart
+            var ctx = document.getElementById('salesChart').getContext('2d');
+            var salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [
+                        <c:forEach items="${dailySales}" var="entry">
+                            "${entry.key}",
+                        </c:forEach>
+                    ],
+                    datasets: [{
+                        label: 'Daily Sales (Rs.)',
+                        data: [
+                            <c:forEach items="${dailySales}" var="entry">
+                                ${entry.value},
+                            </c:forEach>
+                        ],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff',
+                                callback: function(value) {
+                                    return 'Rs. ' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Rs. ' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
             });
         });
     </script>
