@@ -36,6 +36,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
     <style>
         .product-card {
             cursor: pointer;
@@ -157,6 +160,59 @@
         canvas#salesChart {
             background-color: #2d3748;
         }
+        
+        /* Help Section Styles */
+		.help-btn {
+		    position: fixed;
+		    bottom: 30px;
+		    right: 30px;
+		    width: 60px;
+		    height: 60px;
+		    border-radius: 50%;
+		    background-color: #4299e1;
+		    color: white;
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+		    z-index: 1000;
+		    transition: all 0.3s;
+		}
+		
+		.help-btn:hover {
+		    transform: scale(1.1);
+		    background-color: #3182ce;
+		}
+		
+		.accordion-button:not(.collapsed) {
+		    background-color: #2d3748 !important;
+		    color: #4299e1 !important;
+		}
+		
+		.accordion-button:focus {
+		    box-shadow: none;
+		    border-color: rgba(0,0,0,.125);
+		}
+		
+		.modal-content {
+		    border: none;
+		    border-radius: 10px;
+		}
+		
+		.accordion-body {
+		    background-color: #1a202c;
+		    color: #a0aec0;
+		}
+		
+		.card.bg-dark {
+		    border: 1px solid #4a5568;
+		    transition: all 0.3s;
+		}
+		
+		.card.bg-dark:hover {
+		    border-color: #4299e1;
+		    transform: translateY(-2px);
+		}
     </style>
 </head>
 
@@ -208,7 +264,6 @@
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
-                    <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
@@ -234,7 +289,7 @@
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
                             <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
-                            <a href="${pageContext.request.contextPath}/Auth/index.jsp" class="dropdown-item">Log Out</a>
+                            <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -248,7 +303,11 @@
                         <div class="bg-secondary rounded p-4">
                             <h3 class="mb-4">Welcome, ${sessionScope.user.name}!</h3>
                             <p>You are logged in as an administrator. Use the sidebar to navigate through the system.</p>
-                            
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+						    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#helpModal">
+						        <i class="fa fa-question-circle me-2"></i>Help Guide
+						    </button>
+						</div>
                             <!-- Quick Stats -->
                             <div class="row mt-4">
                                 <!-- Total Categories Card -->
@@ -359,6 +418,8 @@
         <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
     </div>
 
+
+<%@ include file="help-section.jsp" %>
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -370,16 +431,52 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
         $(document).ready(function() {
-            // Handle logout
-            $('a[href$="logout"]').on('click', function(e) {
+            // Handle logout with confirmation
+            $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
-                $.post('${pageContext.request.contextPath}/logout', function() {
-                    window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You will be logged out from the system!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Logout!',
+                    cancelButtonText: 'Cancel',
+                    background: '#1a202c',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading animation
+                        Swal.fire({
+                            title: 'Logging out...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                            background: '#1a202c',
+                            color: '#fff'
+                        });
+                        
+                        // Perform logout via AJAX
+                        $.post('${pageContext.request.contextPath}/logout', function() {
+                            // Redirect to login page after successful logout
+                            window.location.href = '${pageContext.request.contextPath}/Auth/index.jsp';
+                        }).fail(function() {
+                            // If logout fails, still redirect to login page
+                            window.location.href = '${pageContext.request.contextPath}/Auth/index.jsp';
+                        });
+                    }
                 });
             });
             
