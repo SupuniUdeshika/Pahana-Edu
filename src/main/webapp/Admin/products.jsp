@@ -1,4 +1,4 @@
-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -36,6 +36,9 @@
     
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
   <style>
         .product-image {
@@ -101,12 +104,14 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link active"><i class="fa fa-book me-2"></i>Book Management</a>
-                    <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
-                    <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
+                    <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
         </div>
@@ -183,7 +188,7 @@
                     <c:choose>
                         <c:when test="${empty products}">
                             <tr>
-                                <td colspan="7" class="text-center">No products found</td>
+                                <td colspan="8" class="text-center">No products found</td>
                             </tr>
                         </c:when>
                         <c:otherwise>
@@ -236,7 +241,7 @@
                                                 <i class="fa fa-edit"></i>
                                             </a>
                                             <a href="products?action=delete&id=${product.id}" class="btn btn-sm btn-danger" 
-                                               onclick="return confirm('Are you sure you want to delete this product?')"
+                                               onclick="return confirmDelete(event, this.href)"
                                                data-bs-toggle="tooltip" title="Delete">
                                                 <i class="fa fa-trash"></i>
                                             </a>
@@ -291,21 +296,23 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
-        
-            
-         // Initialize DataTable with more options
+        $(document).ready(function() {
+            // Initialize DataTable with more options
             $('#productTable').DataTable({
                 responsive: true,
                 columnDefs: [
-                    { orderable: false, targets: [1, 6] }, // Make image and actions columns not sortable
+                    { orderable: false, targets: [1, 7] }, // Make image and actions columns not sortable
                     { width: "80px", targets: [0] }, // ID column width
                     { width: "100px", targets: [1] }, // Image column width
-                    { type: 'currency', targets: 4 },
-                    { width: "150px", targets: [6] } // Actions column width
+                    { type: 'currency', targets: 5 },
+                    { width: "150px", targets: [7] } // Actions column width
                 ],
                 language: {
                     search: "Search products:",
@@ -343,7 +350,37 @@
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
             });
+            
+            // Show success message if exists
+            <c:if test="${not empty successMessage}">
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '${successMessage}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            </c:if>
         });
+        
+        // Custom delete confirmation with SweetAlert
+        function confirmDelete(event, url) {
+            event.preventDefault();
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
         
         $('#price').on('blur', function() {
             let value = $(this).val();

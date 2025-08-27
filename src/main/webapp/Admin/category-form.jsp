@@ -33,26 +33,8 @@
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     
-    <style>
-        .alert-success {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-            animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
-        }
-        
-        @keyframes slideIn {
-            from { right: -100%; }
-            to { right: 20px; }
-        }
-        
-        @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-        }
-    </style>
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -205,6 +187,9 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
@@ -241,9 +226,23 @@
                 
                 // Simple client-side validation
                 if ($('#name').val().trim() === '') {
-                    alert('Category name is required!');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Category name is required!'
+                    });
                     return false;
                 }
+                
+                // Show loading animation
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
                 
                 // Submit form via AJAX for better UX
                 $.ajax({
@@ -251,11 +250,31 @@
                     url: $(this).attr('action'),
                     data: $(this).serialize(),
                     success: function(response) {
-                        // Redirect to categories list after successful submission
-                        window.location.href = '${pageContext.request.contextPath}/Admin/categories';
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Category ${category == null ? "added" : "updated"} successfully!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect to categories list after successful submission
+                            window.location.href = '${pageContext.request.contextPath}/Admin/categories';
+                        });
                     },
                     error: function(xhr, status, error) {
-                        alert('An error occurred: ' + error);
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred: ' + error
+                        });
                     }
                 });
             });

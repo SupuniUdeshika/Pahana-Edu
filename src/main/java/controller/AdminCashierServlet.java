@@ -1,9 +1,11 @@
 package controller;
 
+import dao.CategoryDAO;
 import dao.CustomerDAO;
 import dao.DatabaseConnection;
 import dao.ProductDAO;
 import dao.SaleDAO;
+import model.Category;
 import model.Customer;
 import model.Product;
 import model.Sale;
@@ -33,6 +35,7 @@ public class AdminCashierServlet extends HttpServlet {
     private ProductDAO productDAO;
     private CustomerDAO customerDAO;
     private SaleDAO saleDAO;
+    private CategoryDAO categoryDAO;
     private static final Logger logger = Logger.getLogger(AdminCashierServlet.class.getName());
 
     @Override
@@ -42,6 +45,7 @@ public class AdminCashierServlet extends HttpServlet {
             productDAO = new ProductDAO();
             customerDAO = new CustomerDAO(DatabaseConnection.getConnection());
             saleDAO = new SaleDAO();
+            categoryDAO = new CategoryDAO(); // Add this line
         } catch (SQLException e) {
             throw new ServletException("Failed to initialize DAOs", e);
         }
@@ -112,7 +116,10 @@ public class AdminCashierServlet extends HttpServlet {
 
     private void showPointOfSale(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
         List<Product> products = productDAO.getAllProducts();
+        List<Category> categories = categoryDAO.getAllCategories(); // Add this line
+        
         request.setAttribute("products", products);
+        request.setAttribute("categories", categories); // Add this line
         request.getRequestDispatcher("/Admin/pos.jsp").forward(request, response);
     }
 
@@ -205,6 +212,9 @@ public class AdminCashierServlet extends HttpServlet {
         request.setAttribute("items", items);
         request.setAttribute("customer", customer);
         request.setAttribute("emailSent", emailSent);
+        
+        // Add success parameter to the request
+        request.setAttribute("success", true);
         
         // Forward to receipt page
         request.getRequestDispatcher("/Admin/receipt.jsp").forward(request, response);

@@ -32,6 +32,9 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -106,7 +109,7 @@
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
                             <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
-                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -120,7 +123,7 @@
                         <div class="bg-secondary rounded p-4">
                             <h3 class="mb-4">${customer == null ? 'Add New' : 'Edit'} Customer</h3>
                             
-                            <form action="${pageContext.request.contextPath}/Admin/customers" method="post">
+                            <form action="${pageContext.request.contextPath}/Admin/customers" method="post" id="customerForm">
                                 <input type="hidden" name="action" value="${customer == null ? 'insert' : 'update'}">
                                 <c:if test="${customer != null}">
                                     <input type="hidden" name="id" value="${customer.id}">
@@ -202,16 +205,52 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
         $(document).ready(function() {
-            // Handle logout
-            $('a[href$="logout"]').on('click', function(e) {
+            // Handle logout with confirmation
+            $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
-                $.post('${pageContext.request.contextPath}/logout', function() {
-                    window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You will be logged out from the system!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Logout!',
+                    cancelButtonText: 'Cancel',
+                    background: '#1a202c',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading animation
+                        Swal.fire({
+                            title: 'Logging out...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                            background: '#1a202c',
+                            color: '#fff'
+                        });
+                        
+                        // Perform logout via AJAX
+                        $.post('${pageContext.request.contextPath}/logout', function() {
+                            // Redirect to login page after successful logout
+                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                        }).fail(function() {
+                            // If logout fails, still redirect to login page
+                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                        });
+                    }
                 });
             });
             
@@ -230,6 +269,95 @@
             $('.back-to-top').click(function() {
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
+            });
+            
+            // Form submission handling
+            $('#customerForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Simple client-side validation
+                if ($('#accountNumber').val().trim() === '') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Account number is required!',
+                        background: '#1a202c',
+                        color: '#fff'
+                    });
+                    return false;
+                }
+                
+                if ($('#name').val().trim() === '') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Customer name is required!',
+                        background: '#1a202c',
+                        color: '#fff'
+                    });
+                    return false;
+                }
+                
+                if ($('#email').val().trim() === '') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Email is required!',
+                        background: '#1a202c',
+                        color: '#fff'
+                    });
+                    return false;
+                }
+                
+                // Show loading animation
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    background: '#1a202c',
+                    color: '#fff'
+                });
+                
+                // Submit form via AJAX for better UX
+                $.ajax({
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Customer ${customer == null ? "added" : "updated"} successfully!',
+                            timer: 2000,
+                            showConfirmButton: false,
+                            background: '#1a202c',
+                            color: '#fff'
+                        }).then(() => {
+                            // Redirect to customers list after successful submission
+                            window.location.href = '${pageContext.request.contextPath}/Admin/customers';
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred: ' + error,
+                            background: '#1a202c',
+                            color: '#fff'
+                        });
+                    }
+                });
             });
         });
     </script>

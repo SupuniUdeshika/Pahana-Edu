@@ -35,6 +35,9 @@
     
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -78,12 +81,13 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link active"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
@@ -109,7 +113,7 @@
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
                             <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
                             <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
-                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -167,7 +171,7 @@
                                                         <td>${customer.email}</td>
                                                         <td>
                                                             <a href="${pageContext.request.contextPath}/Admin/customers?action=edit&id=${customer.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
-                                                            <a href="${pageContext.request.contextPath}/Admin/customers?action=delete&id=${customer.id}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this customer?')"><i class="fa fa-trash"></i></a>
+                                                            <a href="${pageContext.request.contextPath}/Admin/customers?action=delete&id=${customer.id}" class="btn btn-sm btn-danger" onclick="return confirmDelete(event, this.href)"><i class="fa fa-trash"></i></a>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -218,6 +222,9 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
@@ -231,11 +238,44 @@
                 ]
             });
             
-            // Handle logout
-            $('a[href$="logout"]').on('click', function(e) {
+            // Handle logout with confirmation
+            $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
-                $.post('${pageContext.request.contextPath}/logout', function() {
-                    window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You will be logged out from the system!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Logout!',
+                    cancelButtonText: 'Cancel',
+                    background: '#1a202c',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading animation
+                        Swal.fire({
+                            title: 'Logging out...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                            background: '#1a202c',
+                            color: '#fff'
+                        });
+                        
+                        // Perform logout via AJAX
+                        $.post('${pageContext.request.contextPath}/logout', function() {
+                            // Redirect to login page after successful logout
+                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                        }).fail(function() {
+                            // If logout fails, still redirect to login page
+                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                        });
+                    }
                 });
             });
             
@@ -255,7 +295,54 @@
                 $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
                 return false;
             });
+            
+            // Show success message if exists
+            <c:if test="${not empty successMessage}">
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '${successMessage}',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    background: '#1a202c',
+                    color: '#fff'
+                });
+            </c:if>
+            
+            // Show error message if exists
+            <c:if test="${not empty errorMessage}">
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '${errorMessage}',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    background: '#1a202c',
+                    color: '#fff'
+                });
+            </c:if>
         });
+        
+        // Custom delete confirmation with SweetAlert
+        function confirmDelete(event, url) {
+            event.preventDefault();
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!',
+                background: '#1a202c',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = url;
+                }
+            });
+        }
     </script>
 </body>
 </html>

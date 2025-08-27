@@ -32,6 +32,9 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -75,12 +78,13 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link active"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
@@ -120,7 +124,7 @@
                         <div class="bg-secondary rounded p-4">
                            <h3 class="mb-4">${empty user.id or user.id == 0 ? 'Add New' : 'Edit'} Employee</h3>
                             
-                            <form action="${pageContext.request.contextPath}/Admin/users" method="post">
+                            <form id="userForm" action="${pageContext.request.contextPath}/Admin/users" method="post">
 							    <input type="hidden" name="action" value="${empty user.id or user.id == 0 ? 'insert' : 'update'}">
 							    
 							    <c:if test="${not empty user.id and user.id != 0}">
@@ -204,11 +208,76 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
         $(document).ready(function() {
+            // Show success/error messages
+            <c:if test="${not empty sessionScope.success}">
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '${sessionScope.success}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <c:remove var="success" scope="session"/>
+            </c:if>
+            
+            <c:if test="${not empty sessionScope.error}">
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '${sessionScope.error}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <c:remove var="error" scope="session"/>
+            </c:if>
+
+            // Handle form submission
+            $('#userForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Basic validation
+                const name = $('#name').val().trim();
+                const email = $('#email').val().trim();
+                const role = $('#role').val();
+                const password = $('#password').val();
+                const isNewUser = ${empty user.id or user.id == 0};
+                
+                if (!name || !email || !role || (isNewUser && !password)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: 'Please fill all required fields',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+                
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: 'Please enter a valid email address',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+                
+                // If validation passes, submit the form
+                this.submit();
+            });
+            
             // Handle logout
             $('a[href$="logout"]').on('click', function(e) {
                 e.preventDefault();
@@ -235,5 +304,5 @@
             });
         });
     </script>
-</body>
+</body> 
 </html>

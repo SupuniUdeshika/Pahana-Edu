@@ -76,6 +76,14 @@ public class ProductServlet extends HttpServlet {
     private void listProducts(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         List<Product> products = productDAO.getAllProducts();
         request.setAttribute("products", products);
+        
+        // Check for success message from session
+        String successMessage = (String) request.getSession().getAttribute("successMessage");
+        if (successMessage != null) {
+            request.setAttribute("successMessage", successMessage);
+            request.getSession().removeAttribute("successMessage");
+        }
+        
         RequestDispatcher dispatcher = request.getRequestDispatcher("/Admin/products.jsp");
         dispatcher.forward(request, response);
     }
@@ -84,6 +92,14 @@ public class ProductServlet extends HttpServlet {
         List<Product> products = productDAO.getLowStockProducts();
         request.setAttribute("products", products);
         request.setAttribute("lowStockFilter", true);
+        
+        // Check for success message from session
+        String successMessage = (String) request.getSession().getAttribute("successMessage");
+        if (successMessage != null) {
+            request.setAttribute("successMessage", successMessage);
+            request.getSession().removeAttribute("successMessage");
+        }
+        
         RequestDispatcher dispatcher = request.getRequestDispatcher("/Admin/products.jsp");
         dispatcher.forward(request, response);
     }
@@ -93,6 +109,14 @@ public class ProductServlet extends HttpServlet {
         List<Product> products = productDAO.searchProducts(keyword);
         request.setAttribute("products", products);
         request.setAttribute("keyword", keyword);
+        
+        // Check for success message from session
+        String successMessage = (String) request.getSession().getAttribute("successMessage");
+        if (successMessage != null) {
+            request.setAttribute("successMessage", successMessage);
+            request.getSession().removeAttribute("successMessage");
+        }
+        
         RequestDispatcher dispatcher = request.getRequestDispatcher("/Admin/products.jsp");
         dispatcher.forward(request, response);
     }
@@ -121,7 +145,6 @@ public class ProductServlet extends HttpServlet {
         byte[] imageBytes = filePart.getInputStream().readAllBytes();
         double price = Double.parseDouble(request.getParameter("price"));
         
-        
         Product newProduct = new Product();
         newProduct.setName(name);
         newProduct.setDescription(description);
@@ -131,6 +154,8 @@ public class ProductServlet extends HttpServlet {
         newProduct.setPrice(price);
 
         if (productDAO.addProduct(newProduct)) {
+            // Set success message in session
+            request.getSession().setAttribute("successMessage", "Product added successfully!");
             response.sendRedirect("products?action=list");
         } else {
             request.setAttribute("error", "Failed to add product");
@@ -147,7 +172,6 @@ public class ProductServlet extends HttpServlet {
         int categoryId = Integer.parseInt(request.getParameter("categoryId"));
         Part filePart = request.getPart("image");
         
-        
         Product product = productDAO.getProductById(id);
         product.setName(name);
         product.setPrice(price);
@@ -163,6 +187,8 @@ public class ProductServlet extends HttpServlet {
         }
 
         if (productDAO.updateProduct(product)) {
+            // Set success message in session
+            request.getSession().setAttribute("successMessage", "Product updated successfully!");
             response.sendRedirect("products?action=list");
         } else {
             request.setAttribute("error", "Failed to update product");
@@ -173,6 +199,9 @@ public class ProductServlet extends HttpServlet {
     private void deleteProduct(HttpServletRequest request, HttpServletResponse response) throws IOException {
         int id = Integer.parseInt(request.getParameter("id"));
         productDAO.deleteProduct(id);
+        
+        // Set success message in session
+        request.getSession().setAttribute("successMessage", "Product deleted successfully!");
         response.sendRedirect("products?action=list");
     }
 }

@@ -23,6 +23,12 @@ public class LoginServlet extends HttpServlet {
     public void setUserDAO(UserDAO userDAO) {
         this.userDAO = userDAO;
     }
+    
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        // Redirect GET requests to the login page
+        response.sendRedirect(request.getContextPath() + "/Auth/index.jsp");
+    }
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");

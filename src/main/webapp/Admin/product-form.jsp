@@ -32,6 +32,9 @@
 
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -75,13 +78,14 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>User Management</a>
-                    <a href="${pageContext.request.contextPath}/admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link active"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/admin/products" class="nav-item nav-link active"><i class="fa fa-box me-2"></i>Product Management</a>
-                    <a href="${pageContext.request.contextPath}/admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
-                    <a href="${pageContext.request.contextPath}/admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
+                    <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
         </div>
@@ -99,7 +103,7 @@
                 </a>
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        <a href="#" class="nav-link dropdownToggle" data-bs-toggle="dropdown">
                             <img class="rounded-circle me-lg-2" src="${pageContext.request.contextPath}/img/user.jpg" alt="" style="width: 40px; height: 40px;">
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
@@ -124,7 +128,7 @@
                                 <div class="alert alert-danger">${error}</div>
                             </c:if>
                             
-                            <form action="products" method="post" enctype="multipart/form-data">
+                            <form action="products" method="post" enctype="multipart/form-data" id="productForm">
                                 <input type="hidden" name="action" value="${product == null ? 'insert' : 'update'}">
                                 <c:if test="${product != null}">
                                     <input type="hidden" name="id" value="${product.id}">
@@ -155,15 +159,14 @@
 								        <input type="number" class="form-control" id="price" name="price" 
                          					value="${product.price}" step="0.01" min="0" required>
 								    </div>
-								    <!-- Keep existing fields -->
-								</div>
-                                
-                                <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" id="quantity" name="quantity" 
                                                value="${product != null ? product.quantity : 0}" min="0" required>
                                     </div>
+                                </div>
+                                
+                                <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="image" class="form-label">Product Image</label>
                                         <input class="form-control" type="file" id="image" name="image" accept="image/*">
@@ -236,6 +239,9 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
@@ -277,6 +283,97 @@
                     }
                     reader.readAsDataURL(file);
                 }
+            });
+            
+            // Form submission handling
+            $('#productForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Simple client-side validation
+                if ($('#name').val().trim() === '') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Product name is required!'
+                    });
+                    return false;
+                }
+                
+                if ($('#categoryId').val() === '') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Please select a category!'
+                    });
+                    return false;
+                }
+                
+                if ($('#price').val() <= 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Price must be greater than 0!'
+                    });
+                    return false;
+                }
+                
+                if ($('#quantity').val() < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Quantity cannot be negative!'
+                    });
+                    return false;
+                }
+                
+                // Show loading animation
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+                
+                // Create FormData object for file upload
+                const formData = new FormData(this);
+                
+                // Submit form via AJAX for better UX
+                $.ajax({
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Product ${product == null ? "added" : "updated"} successfully!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect to products list after successful submission
+                            window.location.href = '${pageContext.request.contextPath}/Admin/products';
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred: ' + error
+                        });
+                    }
+                });
             });
         });
         

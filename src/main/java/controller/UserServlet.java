@@ -14,6 +14,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import dao.DatabaseConnection;
 
 @WebServlet("/Admin/users")
@@ -22,6 +23,7 @@ public class UserServlet extends HttpServlet {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
+        HttpSession session = request.getSession();
         
         try (Connection connection = DatabaseConnection.getConnection()) {
             UserDAO userDAO = new UserDAO(connection);
@@ -38,7 +40,7 @@ public class UserServlet extends HttpServlet {
                     showEditForm(request, response, userDAO);
                     break;
                 case "delete":
-                    deleteUser(request, response, userDAO);
+                    deleteUser(request, response, userDAO, session);
                     break;
                 case "search":
                     searchUsers(request, response, userDAO);
@@ -49,24 +51,27 @@ public class UserServlet extends HttpServlet {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new ServletException("Database error occurred", e);
+            session.setAttribute("error", "Database error occurred: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/Admin/users");
         }
     }
     
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String action = request.getParameter("action");
+        HttpSession session = request.getSession();
         
         try (Connection connection = DatabaseConnection.getConnection()) {
             UserDAO userDAO = new UserDAO(connection);
             
             if ("insert".equals(action)) {
-                insertUser(request, response, userDAO);
+                insertUser(request, response, userDAO, session);
             } else if ("update".equals(action)) {
-                updateUser(request, response, userDAO);
+                updateUser(request, response, userDAO, session);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new ServletException("Database error occurred", e);
+            session.setAttribute("error", "Database error occurred: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/Admin/users");
         }
     }
     
@@ -88,7 +93,6 @@ public class UserServlet extends HttpServlet {
     private void showNewForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
         User user = new User();
-        // Make sure ID is not set for new users
         request.setAttribute("user", user);
         request.setAttribute("isNewUser", true);
         request.getRequestDispatcher("/Admin/user-form.jsp").forward(request, response);
@@ -102,7 +106,7 @@ public class UserServlet extends HttpServlet {
         request.getRequestDispatcher("/Admin/user-form.jsp").forward(request, response);
     }
     
-    private void insertUser(HttpServletRequest request, HttpServletResponse response, UserDAO userDAO) 
+    private void insertUser(HttpServletRequest request, HttpServletResponse response, UserDAO userDAO, HttpSession session) 
             throws ServletException, IOException, SQLException {
         User user = new User();
         user.setName(request.getParameter("name"));
@@ -120,15 +124,15 @@ public class UserServlet extends HttpServlet {
                 sendVerificationEmail(user, request);
             }).start();
             
+            session.setAttribute("success", "Employee added successfully! Verification email sent.");
             response.sendRedirect(request.getContextPath() + "/Admin/users");
         } else {
-            request.setAttribute("error", "Failed to add user");
-            request.setAttribute("isNewUser", true);
-            request.getRequestDispatcher("/Admin/user-form.jsp").forward(request, response);
+            session.setAttribute("error", "Failed to add employee. Please try again.");
+            response.sendRedirect(request.getContextPath() + "/Admin/users?action=new");
         }
     }
     
-    private void updateUser(HttpServletRequest request, HttpServletResponse response, UserDAO userDAO) 
+    private void updateUser(HttpServletRequest request, HttpServletResponse response, UserDAO userDAO, HttpSession session) 
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
         User user = new User();
@@ -143,14 +147,25 @@ public class UserServlet extends HttpServlet {
             user.setPassword(password);
         }
         
-        userDAO.updateUser(user);
-        response.sendRedirect(request.getContextPath() + "/Admin/users");
+        if (userDAO.updateUser(user)) {
+            session.setAttribute("success", "Employee updated successfully!");
+            response.sendRedirect(request.getContextPath() + "/Admin/users");
+        } else {
+            session.setAttribute("error", "Failed to update employee. Please try again.");
+            response.sendRedirect(request.getContextPath() + "/Admin/users?action=edit&id=" + id);
+        }
     }
     
-    private void deleteUser(HttpServletRequest request, HttpServletResponse response, UserDAO userDAO) 
+    private void deleteUser(HttpServletRequest request, HttpServletResponse response, UserDAO userDAO, HttpSession session) 
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
-        userDAO.deleteUser(id);
+        
+        if (userDAO.deleteUser(id)) {
+            session.setAttribute("success", "Employee deleted successfully!");
+        } else {
+            session.setAttribute("error", "Failed to delete employee. Please try again.");
+        }
+        
         response.sendRedirect(request.getContextPath() + "/Admin/users");
     }
     
@@ -176,11 +191,11 @@ public class UserServlet extends HttpServlet {
                     + "Best regards,\n"
                     + "Pahana Edu Management Team";
             
-            System.out.println("Attempting to send email to: " + user.getEmail()); // Logging
-            System.out.println("Email content: " + content); // Logging
+            System.out.println("Attempting to send email to: " + user.getEmail());
+            System.out.println("Email content: " + content);
             
             EmailUtil.sendEmail(user.getEmail(), subject, content);
-            System.out.println("Email sent successfully to: " + user.getEmail()); // Logging
+            System.out.println("Email sent successfully to: " + user.getEmail());
         } catch (Exception e) {
             System.err.println("Failed to send verification email: " + e.getMessage());
             e.printStackTrace();

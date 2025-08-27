@@ -35,6 +35,9 @@
     
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -78,12 +81,13 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/dashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link active"><i class="fa fa-users me-2"></i>Employee Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/reports" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Reports</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
                     <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
                 </div>
             </nav>
@@ -176,7 +180,7 @@
                                                         </td>
                                                         <td>
                                                             <a href="${pageContext.request.contextPath}/Admin/users?action=edit&id=${user.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
-                                                            <a href="${pageContext.request.contextPath}/Admin/users?action=delete&id=${user.id}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this employee?')"><i class="fa fa-trash"></i></a>
+                                                            <a href="${pageContext.request.contextPath}/Admin/users?action=delete&id=${user.id}" class="btn btn-sm btn-danger" onclick="return confirmDelete(event, '${user.name}')"><i class="fa fa-trash"></i></a>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -227,11 +231,37 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
         $(document).ready(function() {
+            // Show success/error messages
+            <c:if test="${not empty sessionScope.success}">
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success!',
+                    text: '${sessionScope.success}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <c:remove var="success" scope="session"/>
+            </c:if>
+            
+            <c:if test="${not empty sessionScope.error}">
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: '${sessionScope.error}',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                <c:remove var="error" scope="session"/>
+            </c:if>
+
             // Initialize DataTable
             $('#userTable').DataTable({
                 responsive: true,
@@ -265,6 +295,27 @@
                 return false;
             });
         });
+        
+        // Custom delete confirmation with SweetAlert
+        function confirmDelete(event, userName) {
+            event.preventDefault();
+            const deleteUrl = event.currentTarget.href;
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete employee: ${userName}`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = deleteUrl;
+                }
+            });
+        }
     </script>
 </body>
 </html>
