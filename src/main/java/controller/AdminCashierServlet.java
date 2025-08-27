@@ -357,7 +357,7 @@ public class AdminCashierServlet extends HttpServlet {
             response.setContentType("application/vnd.ms-excel");
             response.setHeader("Content-Disposition", "attachment; filename=sales_report_" + 
                     new SimpleDateFormat("yyyyMMdd").format(startDate) + "_to_" + 
-                    new SimpleDateFormat("yyyyMMdd").format(endDate) + ".xlsx");
+                    new SimpleDateFormat("yyyyMMdd").format(endDate) + ".xls");
             
             // Create Excel content
             PrintWriter out = response.getWriter();

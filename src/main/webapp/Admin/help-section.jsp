@@ -15,16 +15,16 @@
                     <div class="col-md-3">
                         <div class="list-group" id="helpNav" role="tablist">
                             <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#dashboardHelp" role="tab">
-                                <i class="fa fa-tachometer-alt me-2"></i>Dashboard
+                                <i class="fa fa-tachometer-alt me-2"></i>  Dashboard
                             </a>
                             <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#employeeHelp" role="tab">
-                                <i class="fa fa-users me-2"></i>Employee Management
+                                <i class="fa fa-users me-2"></i> Employee Management
                             </a>
                             <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#customerHelp" role="tab">
-                                <i class="fa fa-user-tie me-2"></i>Customer Management
+                                <i class="fa fa-user-tie me-2"></i>   Customer Management
                             </a>
                             <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#productHelp" role="tab">
-                                <i class="fa fa-book me-2"></i>Book Management
+                                <i class="fa fa-book me-2"></i> Book Management
                             </a>
                             <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#categoryHelp" role="tab">
                                 <i class="fa fa-tags me-2"></i>Category Management
