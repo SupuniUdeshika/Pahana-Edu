@@ -1,9 +1,11 @@
 package controller;
 
+import dao.CategoryDAO;
 import dao.CustomerDAO;
 import dao.DatabaseConnection;
 import dao.ProductDAO;
 import dao.SaleDAO;
+import model.Category;
 import model.Customer;
 import model.Product;
 import model.Sale;
@@ -21,15 +23,19 @@ import javax.servlet.annotation.*;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/Cashier/*")
 public class CashierServlet extends HttpServlet {
     private ProductDAO productDAO;
     private CustomerDAO customerDAO;
     private SaleDAO saleDAO;
+    private CategoryDAO categoryDAO;
     private static final Logger logger = Logger.getLogger(CashierServlet.class.getName());
 
     @Override
@@ -39,6 +45,7 @@ public class CashierServlet extends HttpServlet {
             productDAO = new ProductDAO();
             customerDAO = new CustomerDAO(DatabaseConnection.getConnection());
             saleDAO = new SaleDAO();
+            categoryDAO = new CategoryDAO(); // Add this line
         } catch (SQLException e) {
             throw new ServletException("Failed to initialize DAOs", e);
         }
@@ -68,6 +75,9 @@ public class CashierServlet extends HttpServlet {
                     break;
                 case "/view-sale":
                     viewSale(request, response);
+                    break;
+                case "/export-sales":
+                    exportSales(request, response);
                     break;
                 default:
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -106,7 +116,10 @@ public class CashierServlet extends HttpServlet {
 
     private void showPointOfSale(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
         List<Product> products = productDAO.getAllProducts();
+        List<Category> categories = categoryDAO.getAllCategories(); // Add this line
+        
         request.setAttribute("products", products);
+        request.setAttribute("categories", categories); // Add this line
         request.getRequestDispatcher("/cashier/pos.jsp").forward(request, response);
     }
 
@@ -200,37 +213,62 @@ public class CashierServlet extends HttpServlet {
         request.setAttribute("customer", customer);
         request.setAttribute("emailSent", emailSent);
         
+        // Add success parameter to the request
+        request.setAttribute("success", true);
+        
         // Forward to receipt page
         request.getRequestDispatcher("/cashier/receipt.jsp").forward(request, response);
     }
 
-    private void listSales(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
-        Date date = new Date(); // Default to current date
+    private void listSales(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, SQLException {
+        // Default to last 7 days if no dates specified
+        Date endDate = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DATE, -7);
+        Date startDate = cal.getTime();
         
         try {
-            String dateParam = request.getParameter("date");
-            if (dateParam != null && !dateParam.trim().isEmpty()) {
-                date = java.sql.Date.valueOf(dateParam);
+            // Get date parameters from request
+            String startDateParam = request.getParameter("startDate");
+            String endDateParam = request.getParameter("endDate");
+            
+            if (startDateParam != null && !startDateParam.isEmpty()) {
+                startDate = new java.util.Date(java.sql.Date.valueOf(startDateParam).getTime());
             }
+            if (endDateParam != null && !endDateParam.isEmpty()) {
+                endDate = new java.util.Date(java.sql.Date.valueOf(endDateParam).getTime());
+            }
+            
+            // Get sales data
+            List<Sale> sales = saleDAO.getSalesByDateRange(startDate, endDate);
+            Map<String, Double> dailySales = saleDAO.getDailySalesSummary(startDate, endDate);
+            
+            // Set request attributes
+            request.setAttribute("sales", sales);
+            request.setAttribute("dailySales", dailySales);
+            request.setAttribute("startDate", startDate);
+            request.setAttribute("endDate", endDate);
+            
+            // Forward to JSP
+            request.getRequestDispatcher("/cashier/sales.jsp").forward(request, response);
+            
         } catch (IllegalArgumentException e) {
-            // Handle invalid date format
             request.setAttribute("error", "Invalid date format. Please use yyyy-MM-dd format.");
+            request.getRequestDispatcher("/cashier/sales.jsp").forward(request, response);
         }
-        
-        List<Sale> sales = saleDAO.getSalesByDate(date);
-        request.setAttribute("sales", sales);
-        request.setAttribute("selectedDate", date);
-        request.getRequestDispatcher("/cashier/sales.jsp").forward(request, response);
     }
 
     private void viewSale(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException {
         int saleId = Integer.parseInt(request.getParameter("id"));
-        Sale sale = new Sale();
-        sale.setId(saleId);
+        Sale sale = saleDAO.getSaleById(saleId);
         
-        // Get sale details
-        sale = saleDAO.getSaleById(saleId);
-        sale.setItems(saleDAO.getSaleItems(saleId));
+        if (sale != null) {
+            sale.setItems(saleDAO.getSaleItems(saleId));
+            // Get full customer details using the customerId from the sale
+            Customer customer = customerDAO.getCustomerById(sale.getCustomerId());
+            request.setAttribute("customer", customer);
+        }
         
         request.setAttribute("sale", sale);
         request.getRequestDispatcher("/cashier/view-sale.jsp").forward(request, response);
@@ -304,4 +342,41 @@ public class CashierServlet extends HttpServlet {
         // Create PDF using your preferred library
         PDFGenerator.generateReceipt(sale, items, customer, response.getOutputStream());
     }
+    
+    private void exportSales(HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException, SQLException {
+        try {
+            // Get date parameters
+            Date startDate = new java.util.Date(java.sql.Date.valueOf(request.getParameter("startDate")).getTime());
+            Date endDate = new java.util.Date(java.sql.Date.valueOf(request.getParameter("endDate")).getTime());
+            
+            // Get sales data
+            List<Sale> sales = saleDAO.getSalesByDateRange(startDate, endDate);
+            
+            // Set response headers for Excel download
+            response.setContentType("application/vnd.ms-excel");
+            response.setHeader("Content-Disposition", "attachment; filename=sales_report_" + 
+                    new SimpleDateFormat("yyyyMMdd").format(startDate) + "_to_" + 
+                    new SimpleDateFormat("yyyyMMdd").format(endDate) + ".xls");
+            
+            // Create Excel content
+            PrintWriter out = response.getWriter();
+            out.write("Sale ID\tDate\tCustomer\tItems\tTotal Amount\tPayment Method\n");
+            
+            for (Sale sale : sales) {
+                out.write(sale.getId() + "\t");
+                out.write(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(sale.getSaleDate()) + "\t");
+                out.write((sale.getCustomerName() != null ? sale.getCustomerName() : "Walk-in") + "\t");
+                out.write(sale.getItems().size() + " items\t");
+                out.write("Rs. " + String.format("%.2f", sale.getTotalAmount()) + "\t");
+                out.write(sale.getPaymentMethod() + "\n");
+            }
+            
+        } catch (IllegalArgumentException e) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid date format");
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Error generating report");
+        }
+    }
+    
 }

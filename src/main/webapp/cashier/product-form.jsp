@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>${customer == null ? 'Add New' : 'Edit'} Customer - Pahana Edu</title>
+    <title>${product == null ? 'Add New' : 'Edit'} Product - Book Management System</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -56,7 +56,7 @@
             </c:when>
             <c:when test="${sessionScope.user.role ne 'CASHIER'}">
                 <script>
-                    window.location.href = "${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp";
+                    window.location.href = "${pageContext.request.contextPath}/cashier/dashboard.jsp";
                 </script>
             </c:when>
         </c:choose>
@@ -79,9 +79,10 @@
                 </div>
                 <div class="navbar-nav w-100">
                     <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link active"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/Cashier/books" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link active"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                 </div>
             </nav>
         </div>
@@ -99,13 +100,11 @@
                 </a>
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        <a href="#" class="nav-link dropdownToggle" data-bs-toggle="dropdown">
                             <img class="rounded-circle me-lg-2" src="${pageContext.request.contextPath}/img/user.jpg" alt="" style="width: 40px; height: 40px;">
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
-                            <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
                             <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
@@ -118,48 +117,81 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <h3 class="mb-4">${customer == null ? 'Add New' : 'Edit'} Customer</h3>
+                            <h3 class="mb-4">${product == null ? 'Add New' : 'Edit'} Product</h3>
                             
-                            <form action="${pageContext.request.contextPath}/Cashier/customers" method="post" id="customerForm">
-                                <input type="hidden" name="action" value="${customer == null ? 'insert' : 'update'}">
-                                <c:if test="${customer != null}">
-                                    <input type="hidden" name="id" value="${customer.id}">
+                            <c:if test="${not empty error}">
+                                <div class="alert alert-danger">${error}</div>
+                            </c:if>
+                            
+                            <form action="products" method="post" enctype="multipart/form-data" id="productForm">
+                                <input type="hidden" name="action" value="${product == null ? 'insert' : 'update'}">
+                                <c:if test="${product != null}">
+                                    <input type="hidden" name="id" value="${product.id}">
                                 </c:if>
                                 
-                                <div class="mb-3">
-                                    <label for="accountNumber" class="form-label">Account Number <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="accountNumber" name="accountNumber" 
-                                           value="${customer.accountNumber}" required>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="name" class="form-label">Product Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="name" name="name" 
+                                               value="${product.name}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="categoryId" class="form-label">Category <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="categoryId" name="categoryId" required>
+                                            <option value="">Select Category</option>
+                                            <c:forEach var="category" items="${categories}">
+                                                <option value="${category.id}" ${product != null && product.categoryId == category.id ? 'selected' : ''}>
+                                                    ${category.name}
+                                                </option>
+                                            </c:forEach>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+								    <div class="col-md-6">
+								        <label for="price" class="form-label">Price (Rs.) <span class="text-danger">*</span></label>
+								        <input type="number" class="form-control" id="price" name="price" 
+                         					value="${product.price}" step="0.01" min="0" required>
+								    </div>
+                                    <div class="col-md-6">
+                                        <label for="quantity" class="form-label">Quantity <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="quantity" name="quantity" 
+                                               value="${product != null ? product.quantity : 0}" min="0" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="image" class="form-label">Product Image</label>
+                                        <input class="form-control" type="file" id="image" name="image" accept="image/*">
+                                        <c:if test="${product != null && product.image != null}">
+                                            <small class="text-muted">Current image will be kept if no new image is uploaded.</small>
+                                        </c:if>
+                                    </div>
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="name" name="name" 
-                                           value="${customer.name}" required>
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" 
+                                              rows="3">${product.description}</textarea>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
-                                    <textarea class="form-control" id="address" name="address" rows="3" required>${customer.address}</textarea>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="telephone" class="form-label">Telephone <span class="text-danger">*</span></label>
-                                    <input type="tel" class="form-control" id="telephone" name="telephone" 
-                                           value="${customer.telephone}" required>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                    <input type="email" class="form-control" id="email" name="email" 
-                                           value="${customer.email}" required>
-                                </div>
+                                <c:if test="${product != null && product.image != null}">
+                                    <div class="mb-3">
+                                        <label class="form-label">Current Image</label>
+                                        <div>
+                                        <img src="data:image/jpeg;base64,${product.imageBase64}" class="product-image" style="max-width: 200px; max-height: 200px;">
+                                            
+                                        </div>
+                                    </div>
+                                </c:if>
                                 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fa fa-save me-2"></i>${customer == null ? 'Add' : 'Update'} Customer
+                                        <i class="fa fa-save me-2"></i>${product == null ? 'Add' : 'Update'} Product
                                     </button>
-                                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="btn btn-secondary">
+                                    <a href="products" class="btn btn-secondary">
                                         <i class="fa fa-times me-2"></i>Cancel
                                     </a>
                                 </div>
@@ -178,7 +210,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>${customer == null ? 'Add New' : 'Edit'} Customer</span>
+                            <span>${product == null ? 'Add New' : 'Edit'} Product</span>
                         </div>
                     </div>
                 </div>
@@ -210,7 +242,7 @@
     
     <script>
         $(document).ready(function() {
-            // Handle logout with confirmation
+        	// Handle logout with confirmation
             $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
                 
@@ -268,40 +300,56 @@
                 return false;
             });
             
+            // Preview image before upload
+            $('#image').change(function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('.image-preview').remove();
+                        $('#image').after('<div class="image-preview mt-2"><img src="' + e.target.result + '" style="max-width: 200px; max-height: 200px;"></div>');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+            
             // Form submission handling
-            $('#customerForm').on('submit', function(e) {
+            $('#productForm').on('submit', function(e) {
                 e.preventDefault();
                 
                 // Simple client-side validation
-                if ($('#accountNumber').val().trim() === '') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: 'Account number is required!',
-                        background: '#1a202c',
-                        color: '#fff'
-                    });
-                    return false;
-                }
-                
                 if ($('#name').val().trim() === '') {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
-                        text: 'Customer name is required!',
-                        background: '#1a202c',
-                        color: '#fff'
+                        text: 'Product name is required!'
                     });
                     return false;
                 }
                 
-                if ($('#email').val().trim() === '') {
+                if ($('#categoryId').val() === '') {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error!',
-                        text: 'Email is required!',
-                        background: '#1a202c',
-                        color: '#fff'
+                        text: 'Please select a category!'
+                    });
+                    return false;
+                }
+                
+                if ($('#price').val() <= 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Price must be greater than 0!'
+                    });
+                    return false;
+                }
+                
+                if ($('#quantity').val() < 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Quantity cannot be negative!'
                     });
                     return false;
                 }
@@ -313,16 +361,19 @@
                     allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading()
-                    },
-                    background: '#1a202c',
-                    color: '#fff'
+                    }
                 });
+                
+                // Create FormData object for file upload
+                const formData = new FormData(this);
                 
                 // Submit form via AJAX for better UX
                 $.ajax({
                     type: $(this).attr('method'),
                     url: $(this).attr('action'),
-                    data: $(this).serialize(),
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function(response) {
                         // Close loading animation
                         Swal.close();
@@ -331,14 +382,12 @@
                         Swal.fire({
                             icon: 'success',
                             title: 'Success!',
-                            text: 'Customer ${customer == null ? "added" : "updated"} successfully!',
+                            text: 'Product ${product == null ? "added" : "updated"} successfully!',
                             timer: 2000,
-                            showConfirmButton: false,
-                            background: '#1a202c',
-                            color: '#fff'
+                            showConfirmButton: false
                         }).then(() => {
-                            // Redirect to customers list after successful submission
-                            window.location.href = '${pageContext.request.contextPath}/Cashier/customers';
+                            // Redirect to products list after successful submission
+                            window.location.href = '${pageContext.request.contextPath}/Cashier/products';
                         });
                     },
                     error: function(xhr, status, error) {
@@ -349,13 +398,18 @@
                         Swal.fire({
                             icon: 'error',
                             title: 'Error!',
-                            text: 'An error occurred: ' + error,
-                            background: '#1a202c',
-                            color: '#fff'
+                            text: 'An error occurred: ' + error
                         });
                     }
                 });
             });
+        });
+        
+        $('#price').on('blur', function() {
+            let value = $(this).val();
+            if(value && !isNaN(value)) {
+                $(this).val(parseFloat(value).toFixed(2));
+            }
         });
     </script>
 </body>

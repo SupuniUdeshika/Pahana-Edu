@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Category Management - Book Management System</title>
+    <title>${category == null ? 'Add New' : 'Edit'} Category - Book Management System</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
     <meta content="" name="description">
@@ -33,9 +33,6 @@
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css">
-    
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
@@ -50,16 +47,16 @@
         </div>
         <!-- Spinner End -->
 
-        <!-- Check if user is logged in and is ADMIN -->
+        <!-- Check if user is logged in and is CASHIER -->
         <c:choose>
             <c:when test="${empty sessionScope.user}">
                 <script>
                     window.location.href = "${pageContext.request.contextPath}/LoginServlet";
                 </script>
             </c:when>
-            <c:when test="${sessionScope.user.role ne 'ADMIN'}">
+            <c:when test="${sessionScope.user.role ne 'CASHIER'}">
                 <script>
-                    window.location.href = "${pageContext.request.contextPath}/cashier/dashboard.jsp";
+                    window.location.href = "${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp";
                 </script>
             </c:when>
         </c:choose>
@@ -67,8 +64,8 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="navbar-brand mx-4 mb-3">
-                    <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Admin Panel</h3>
+                <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Cashier Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
@@ -77,18 +74,13 @@
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">${sessionScope.user.name}</h6>
-                        <span>Administrator</span>
+                        <span>Cashier</span>
                     </div>
                 </div>
-                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
-                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
-                    <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                <div class="navbar-nav w-100">
+                    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/product" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/categories.jsp" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
                 </div>
             </nav>
         </div>
@@ -98,7 +90,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -111,8 +103,6 @@
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
-                            <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
                             <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
@@ -125,55 +115,35 @@
                 <div class="row g-4">
                     <div class="col-12">
                         <div class="bg-secondary rounded p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <h3 class="mb-0">Category Management</h3>
-                                <a href="categories?action=new" class="btn btn-primary"><i class="fa fa-plus me-2"></i>Add New Category</a>
-                            </div>
+                            <h3 class="mb-4">${category == null ? 'Add New' : 'Edit'} Category</h3>
                             
-                            <!-- Search Form -->
-                            <form action="categories" method="get" class="mb-4">
-                                <input type="hidden" name="action" value="search">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Search categories..." name="keyword" value="${param.keyword}">
-                                    <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
+                            <form action="${pageContext.request.contextPath}/Cashier/categories" method="post" id="categoryForm">
+                                <input type="hidden" name="action" value="${category == null ? 'insert' : 'update'}">
+                                <c:if test="${category != null}">
+                                    <input type="hidden" name="id" value="${category.id}">
+                                </c:if>
+                                
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Category Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="name" name="name" 
+                                           value="${category.name}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" 
+                                              rows="3">${category.description}</textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-2"></i>${category == null ? 'Add' : 'Update'} Category
+                                    </button>
+                                    <a href="${pageContext.request.contextPath}/Cashier/categories" class="btn btn-secondary">
+                                        <i class="fa fa-times me-2"></i>Cancel
+                                    </a>
                                 </div>
                             </form>
-                            
-                            <!-- Categories Table -->
-                        <div class="table-responsive">
-					        <table class="table table-hover" id="categoryTable">
-					            <thead>
-					                <tr>
-					                    <th scope="col">ID</th>
-					                    <th scope="col">Name</th>
-					                    <th scope="col">Description</th>
-					                    <th scope="col">Actions</th>
-					                </tr>
-					            </thead>
-					            <tbody>
-					                <c:choose>
-					                    <c:when test="${empty categories}">
-					                        <tr>
-					                            <td colspan="4" class="text-center">No categories found</td>
-					                        </tr>
-					                    </c:when>
-					                    <c:otherwise>
-					                        <c:forEach var="category" items="${categories}">
-					                            <tr>
-					                                <td>${category.id}</td>
-					                                <td>${category.name}</td>
-					                                <td>${category.description}</td>
-					                                <td>
-					                                    <a href="${pageContext.request.contextPath}/Admin/categories?action=edit&id=${category.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
-					                                    <a href="${pageContext.request.contextPath}/Admin/categories?action=delete&id=${category.id}" class="btn btn-sm btn-danger" onclick="return confirmDelete(event, this.href)"><i class="fa fa-trash"></i></a>
-					                                </td>
-					                            </tr>
-					                        </c:forEach>
-					                    </c:otherwise>
-					                </c:choose>
-					            </tbody>
-					        </table>
-					    </div>
                         </div>
                     </div>
                 </div>
@@ -188,7 +158,7 @@
                             &copy; <a href="#">Pahana Edu</a>, All Rights Reserved. 
                         </div>
                         <div class="col-12 col-sm-6 text-center text-sm-end">
-                            <span>Category Management</span>
+                            <span>${category == null ? 'Add New' : 'Edit'} Category</span>
                         </div>
                     </div>
                 </div>
@@ -211,10 +181,6 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
-    
-    <!-- DataTables JS -->
-    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js"></script>
 
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
@@ -224,15 +190,7 @@
     
     <script>
         $(document).ready(function() {
-            // Initialize DataTable
-            $('#categoryTable').DataTable({
-                responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: [3] } // Make actions column not sortable
-                ]
-            });           
-            
-            // Handle logout with confirmation
+        	// Handle logout with confirmation
             $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
                 
@@ -273,11 +231,6 @@
                 });
             });
             
-            
-            
-            
-            
-            
             // Initialize tooltips
             $('[data-bs-toggle="tooltip"]').tooltip();
             
@@ -295,36 +248,65 @@
                 return false;
             });
             
-            // Show success message if exists
-            <c:if test="${not empty successMessage}">
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: '${successMessage}',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            </c:if>
-        });
-        
-        // Custom delete confirmation with SweetAlert
-        function confirmDelete(event, url) {
-            event.preventDefault();
-            
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You won't be able to revert this!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = url;
+            // Form submission handling
+            $('#categoryForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                // Simple client-side validation
+                if ($('#name').val().trim() === '') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Category name is required!'
+                    });
+                    return false;
                 }
+                
+                // Show loading animation
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    }
+                });
+                
+                // Submit form via AJAX for better UX
+                $.ajax({
+                    type: $(this).attr('method'),
+                    url: $(this).attr('action'),
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: 'Category ${category == null ? "added" : "updated"} successfully!',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect to categories list after successful submission
+                            window.location.href = '${pageContext.request.contextPath}/Cashier/categories';
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        // Close loading animation
+                        Swal.close();
+                        
+                        // Show error message
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'An error occurred: ' + error
+                        });
+                    }
+                });
             });
-        }
+        });
     </script>
 </body>
 </html>

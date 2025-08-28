@@ -33,7 +33,8 @@
     <!-- Template Stylesheet -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     
-    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 </head>
 
 <body>
@@ -77,12 +78,12 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-				    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-				    <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
-				    <a href="${pageContext.request.contextPath}/Cashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
-				    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-				    <a href="${pageContext.request.contextPath}/Cashier/profile" class="nav-item nav-link"><i class="fa fa-user me-2"></i>My Profile</a>
-				</div>
+                    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link "><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                </div>
             </nav>
         </div>
         <!-- Sidebar End -->
@@ -104,8 +105,7 @@
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="${pageContext.request.contextPath}/Cashier/profile" class="dropdown-item">My Profile</a>
-                            <a href="${pageContext.request.contextPath}/Auth/index.jsp" class="dropdown-item">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -184,17 +184,49 @@
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/moment-timezone.min.js"></script>
     <script src="${pageContext.request.contextPath}/lib/tempusdominus/js/tempusdominus-bootstrap-4.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 
     <!-- Template Javascript -->
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
         $(document).ready(function() {
-            // Handle logout
-            $('a[href$="logout"]').on('click', function(e) {
+            // Handle logout with confirmation
+            $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
-                $.post('${pageContext.request.contextPath}/logout', function() {
-                    window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You will be logged out from the system!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, Logout!',
+                    cancelButtonText: 'Cancel',
+                    background: '#1a202c',
+                    color: '#fff'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading animation
+                        Swal.fire({
+                            title: 'Logging out...',
+                            text: 'Please wait',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            },
+                            background: '#1a202c',
+                            color: '#fff'
+                        });
+                        
+                        // Perform logout via form submission
+                        setTimeout(function() {
+                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                        }, 1000);
+                    }
                 });
             });
             

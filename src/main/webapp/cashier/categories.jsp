@@ -50,16 +50,16 @@
         </div>
         <!-- Spinner End -->
 
-        <!-- Check if user is logged in and is ADMIN -->
+        <!-- Check if user is logged in and is Cashier -->
         <c:choose>
             <c:when test="${empty sessionScope.user}">
                 <script>
                     window.location.href = "${pageContext.request.contextPath}/LoginServlet";
                 </script>
             </c:when>
-            <c:when test="${sessionScope.user.role ne 'ADMIN'}">
+            <c:when test="${sessionScope.user.role ne 'CASHIER'}">
                 <script>
-                    window.location.href = "${pageContext.request.contextPath}/cashier/dashboard.jsp";
+                    window.location.href = "${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp";
                 </script>
             </c:when>
         </c:choose>
@@ -67,8 +67,8 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="navbar-brand mx-4 mb-3">
-                    <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Admin Panel</h3>
+                <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Cashier Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
@@ -77,18 +77,15 @@
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">${sessionScope.user.name}</h6>
-                        <span>Administrator</span>
+                        <span>Cashier</span>
                     </div>
                 </div>
                  <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Admin/users" class="nav-item nav-link"><i class="fa fa-users me-2"></i>Employee Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
-                    <a href="${pageContext.request.contextPath}/Admin/categories" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
-                    <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
-                    <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
-                    <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link active"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                 </div>
             </nav>
         </div>
@@ -98,7 +95,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -111,8 +108,6 @@
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
-                            <a href="${pageContext.request.contextPath}/settings" class="dropdown-item">Settings</a>
                             <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
@@ -164,8 +159,8 @@
 					                                <td>${category.name}</td>
 					                                <td>${category.description}</td>
 					                                <td>
-					                                    <a href="${pageContext.request.contextPath}/Admin/categories?action=edit&id=${category.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
-					                                    <a href="${pageContext.request.contextPath}/Admin/categories?action=delete&id=${category.id}" class="btn btn-sm btn-danger" onclick="return confirmDelete(event, this.href)"><i class="fa fa-trash"></i></a>
+					                                    <a href="${pageContext.request.contextPath}/Cashier/categories?action=edit&id=${category.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
+					                                    <a href="${pageContext.request.contextPath}/Cashier/categories?action=delete&id=${category.id}" class="btn btn-sm btn-danger" onclick="return confirmDelete(event, this.href)"><i class="fa fa-trash"></i></a>
 					                                </td>
 					                            </tr>
 					                        </c:forEach>
@@ -230,9 +225,9 @@
                 columnDefs: [
                     { orderable: false, targets: [3] } // Make actions column not sortable
                 ]
-            });           
+            });
             
-            // Handle logout with confirmation
+         // Handle logout with confirmation
             $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
                 
@@ -272,11 +267,6 @@
                     }
                 });
             });
-            
-            
-            
-            
-            
             
             // Initialize tooltips
             $('[data-bs-toggle="tooltip"]').tooltip();

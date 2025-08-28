@@ -43,7 +43,7 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/cashier/dashboard.jsp" class="navbar-brand mx-4 mb-3">
+                <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard.jsp" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-cash-register me-2"></i>Cashier Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -57,9 +57,12 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/cashier/dashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/cashier/new" class="nav-item nav-link"><i class="fa fa-plus-circle me-2"></i>New Sale</a>
-                    <a href="${pageContext.request.contextPath}/cashier/sales" class="nav-item nav-link active"><i class="fa fa-list me-2"></i>Today's Sales</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/sales" class="nav-item nav-link active"><i class="fa fa-history me-2"></i>Sales History</a>
                 </div>
             </nav>
         </div>
@@ -69,7 +72,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/cashier/dashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-cash-register"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -124,18 +127,27 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card bg-dark text-white">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Customer Information</h5>
-                                            <p class="card-text">
-                                                <strong>Name:</strong> ${sale.customerName}<br>
-                                                <strong>Email:</strong> ${customer.email}<br>
-                                                <strong>Phone:</strong> ${customer.telephone}<br>
-                                                <strong>Address:</strong> ${customer.address}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
+							    <div class="card bg-dark text-white">
+							        <div class="card-body">
+							            <h5 class="card-title">Customer Information</h5>
+							            <p class="card-text">
+							                <strong>Name:</strong> ${customer.name}<br>
+							                <c:if test="${not empty customer.email}">
+							                    <strong>Email:</strong> ${customer.email}<br>
+							                </c:if>
+							                <c:if test="${not empty customer.telephone}">
+							                    <strong>Phone:</strong> ${customer.telephone}<br>
+							                </c:if>
+							                <c:if test="${not empty customer.address}">
+							                    <strong>Address:</strong> ${customer.address}<br>
+							                </c:if>
+							                <c:if test="${not empty customer.accountNumber}">
+							                    <strong>Account #:</strong> ${customer.accountNumber}
+							                </c:if>
+							            </p>
+							        </div>
+							    </div>
+							</div>
                             </div>
                             
                             <div class="table-responsive">

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import dao.DatabaseConnection;
+import util.EmailUtil;
 
 @WebServlet("/Cashier/customers")
 public class CashierCustomerServlet extends HttpServlet {
@@ -71,6 +72,21 @@ public class CashierCustomerServlet extends HttpServlet {
             throws ServletException, IOException, SQLException {
         List<Customer> customers = customerDAO.getAllCustomers();
         request.setAttribute("customers", customers);
+        
+        // Check for success message from session
+        String successMessage = (String) request.getSession().getAttribute("successMessage");
+        if (successMessage != null) {
+            request.setAttribute("successMessage", successMessage);
+            request.getSession().removeAttribute("successMessage");
+        }
+        
+        // Check for error message from session
+        String errorMessage = (String) request.getSession().getAttribute("errorMessage");
+        if (errorMessage != null) {
+            request.setAttribute("errorMessage", errorMessage);
+            request.getSession().removeAttribute("errorMessage");
+        }
+        
         request.getRequestDispatcher("/cashier/customers.jsp").forward(request, response);
     }
     
@@ -79,13 +95,26 @@ public class CashierCustomerServlet extends HttpServlet {
         String keyword = request.getParameter("keyword");
         List<Customer> customers = customerDAO.searchCustomers(keyword);
         request.setAttribute("customers", customers);
+        
+        // Check for success message from session
+        String successMessage = (String) request.getSession().getAttribute("successMessage");
+        if (successMessage != null) {
+            request.setAttribute("successMessage", successMessage);
+            request.getSession().removeAttribute("successMessage");
+        }
+        
+        // Check for error message from session
+        String errorMessage = (String) request.getSession().getAttribute("errorMessage");
+        if (errorMessage != null) {
+            request.setAttribute("errorMessage", errorMessage);
+            request.getSession().removeAttribute("errorMessage");
+        }
+        
         request.getRequestDispatcher("/cashier/customers.jsp").forward(request, response);
     }
     
     private void showNewForm(HttpServletRequest request, HttpServletResponse response) 
             throws ServletException, IOException {
-        Customer customer = new Customer();
-        request.setAttribute("customer", customer);
         request.getRequestDispatcher("/cashier/customer-form.jsp").forward(request, response);
     }
     
@@ -106,7 +135,24 @@ public class CashierCustomerServlet extends HttpServlet {
         customer.setTelephone(request.getParameter("telephone"));
         customer.setEmail(request.getParameter("email"));
         
-        customerDAO.addCustomer(customer);
+        // Customer එක add කරන්න
+        boolean success = customerDAO.addCustomer(customer);
+        
+        if (success) {
+            // Email එක යවන්න
+            String customerEmail = customer.getEmail();
+            String customerName = customer.getName();
+            
+            // Background thread එකකින් email යවන්න (performance සඳහා)
+            new Thread(() -> {
+                EmailUtil.sendCustomerWelcomeEmail(customerEmail, customerName);
+            }).start();
+            
+            request.getSession().setAttribute("successMessage", "Customer added successfully! Welcome email sent.");
+        } else {
+            request.getSession().setAttribute("errorMessage", "Failed to add customer.");
+        }
+        
         response.sendRedirect(request.getContextPath() + "/Cashier/customers");
     }
     
@@ -121,14 +167,28 @@ public class CashierCustomerServlet extends HttpServlet {
         customer.setTelephone(request.getParameter("telephone"));
         customer.setEmail(request.getParameter("email"));
         
-        customerDAO.updateCustomer(customer);
+        boolean success = customerDAO.updateCustomer(customer);
+        
+        if (success) {
+            request.getSession().setAttribute("successMessage", "Customer updated successfully!");
+        } else {
+            request.getSession().setAttribute("errorMessage", "Failed to update customer.");
+        }
+        
         response.sendRedirect(request.getContextPath() + "/Cashier/customers");
     }
     
     private void deleteCustomer(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
-        customerDAO.deleteCustomer(id);
+        boolean success = customerDAO.deleteCustomer(id);
+        
+        if (success) {
+            request.getSession().setAttribute("successMessage", "Customer deleted successfully!");
+        } else {
+            request.getSession().setAttribute("errorMessage", "Failed to delete customer.");
+        }
+        
         response.sendRedirect(request.getContextPath() + "/Cashier/customers");
     }
 }
