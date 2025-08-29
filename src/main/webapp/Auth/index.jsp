@@ -78,7 +78,7 @@
                                 <a href="${pageContext.request.contextPath}/Auth/forgot-password.jsp">Forgot Password</a>
                             </div>
                             <button type="submit" class="btn btn-primary py-3 w-100 mb-4">Sign In</button>
-                            <p class="text-center mb-0">Don't have an Account? <a href="${pageContext.request.contextPath}/register">Sign Up</a></p>
+                            <p class="text-center mb-0">Log in if you already have an account, or get help from Administrator Support.</p>
                         </form>
                     </div>
                 </div>

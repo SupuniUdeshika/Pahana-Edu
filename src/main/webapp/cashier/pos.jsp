@@ -182,7 +182,7 @@
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
                 <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard" class="navbar-brand mx-4 mb-3">
-                    <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Cashier Panel</h3>
+                    <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Admin Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
@@ -191,14 +191,14 @@
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">${sessionScope.user.name}</h6>
-                        <span>Admin</span>
+                        <span>Administrator</span>
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
                     <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
-                    <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>   
                     <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link active"><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                 </div>
             </nav>
