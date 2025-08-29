@@ -134,4 +134,20 @@ public class CustomerDAO {
         
         return customer;
     }
+    
+    public int getTotalCustomers() {
+        int count = 0;
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM customers");
+             ResultSet resultSet = statement.executeQuery()) {
+            
+            if (resultSet.next()) {
+                count = resultSet.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return count;
+    }
+    
 }

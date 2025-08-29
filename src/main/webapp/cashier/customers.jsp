@@ -81,7 +81,7 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard" class="nav-item nav-link "><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link active"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
                     <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
@@ -166,7 +166,7 @@
                                                         <td>${customer.email}</td>
                                                         <td>
                                                             <a href="${pageContext.request.contextPath}/Cashier/customers?action=edit&id=${customer.id}" class="btn btn-sm btn-warning me-2"><i class="fa fa-edit"></i></a>
-                                                            <a href="${pageContext.request.contextPath}/Cashier/customers?action=delete&id=${customer.id}" class="btn btn-sm btn-danger" onclick="return confirmDelete(event, this.href)"><i class="fa fa-trash"></i></a>
+                                                            <button class="btn btn-sm btn-danger" onclick="confirmDelete(${customer.id}, '${customer.name}')"><i class="fa fa-trash"></i></button>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -319,12 +319,10 @@
         });
         
         // Custom delete confirmation with SweetAlert
-        function confirmDelete(event, url) {
-            event.preventDefault();
-            
+        function confirmDelete(customerId, customerName) {
             Swal.fire({
                 title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                html: `You are about to delete customer: <strong>${customerName}</strong><br>This action cannot be undone!`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -334,7 +332,34 @@
                 color: '#fff'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = url;
+                    // Show loading animation
+                    Swal.fire({
+                        title: 'Deleting...',
+                        text: 'Please wait',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        },
+                        background: '#1a202c',
+                        color: '#fff'
+                    });
+                    
+                    // Perform delete via AJAX
+                    $.post('${pageContext.request.contextPath}/Cashier/customers', {
+                        action: 'delete',
+                        id: customerId
+                    }, function(response) {
+                        // Reload the page to see the updated list
+                        window.location.reload();
+                    }).fail(function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: 'Failed to delete customer. Please try again.',
+                            background: '#1a202c',
+                            color: '#fff'
+                        });
+                    });
                 }
             });
         }

@@ -8,7 +8,7 @@
     <title>Point of Sale - Pahana Edu</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     
-    <!-- Include all CSS files from Cashier dashboard -->
+    <!-- Include all CSS files from cashier dashboard -->
     <link href="${pageContext.request.contextPath}/img/favicon.ico" rel="icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -141,14 +141,47 @@
         .text-success {
             color: #48bb78 !important;
         }
+        
+        /* Alert Styles */
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 350px;
+        }
+        
+        .alert {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .alert-danger {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+        
+        .alert-warning {
+            background-color: #feebcb;
+            color: #c05621;
+        }
+        
+        .alert-success {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
     </style>
 </head>
 <body>
+    <!-- Alert Container -->
+    <div class="alert-container" id="alert-container"></div>
+
     <div class="container-fluid position-relative d-flex p-0">
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard.jsp" class="navbar-brand mx-4 mb-3">
+                <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard" class="navbar-brand mx-4 mb-3">
                     <h3 class="text-primary"><i class="fa fa-user-edit me-2"></i>Cashier Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
@@ -158,14 +191,14 @@
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">${sessionScope.user.name}</h6>
-                        <span>Cashier</span>
+                        <span>Admin</span>
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="${pageContext.request.contextPath}/cashier/Cashierdashboard.jsp" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
-                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>                 
-                    <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/customers" class="nav-item nav-link"><i class="fa fa-user-tie me-2"></i>Customer Management</a>
                     <a href="${pageContext.request.contextPath}/Cashier/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
+                    <a href="${pageContext.request.contextPath}/Cashier/categories" class="nav-item nav-link"><i class="fa fa-tags me-2"></i>Category Management</a>
                     <a href="${pageContext.request.contextPath}/Cashier/pos" class="nav-item nav-link active"><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                 </div>
             </nav>
@@ -176,7 +209,7 @@
         <div class="content">
             <!-- Navbar Start -->
             <nav class="navbar navbar-expand bg-secondary navbar-dark sticky-top px-4 py-0">
-                <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard.jsp" class="navbar-brand d-flex d-lg-none me-4">
+                <a href="${pageContext.request.contextPath}/Cashier/Cashierdashboard" class="navbar-brand d-flex d-lg-none me-4">
                     <h2 class="text-primary mb-0"><i class="fa fa-user-edit"></i></h2>
                 </a>
                 <a href="#" class="sidebar-toggler flex-shrink-0">
@@ -189,7 +222,8 @@
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
+                            <a href="${pageContext.request.contextPath}/Admin/profile" class="dropdown-item">My Profile</a>
+                            <a href="${pageContext.request.contextPath}/Auth/index.jsp" class="dropdown-item">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -278,6 +312,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Amount Paid</label>
                                     <input type="number" id="amount-paid" class="form-control" step="0.01" min="0" value="0">
+                                    <div id="amount-paid-error" class="text-danger mt-1" style="display: none;"></div>
                                 </div>
                                 
                                 <div class="d-flex justify-content-between mb-3">
@@ -305,51 +340,16 @@
     <script>
     let cart = [];
     let selectedCustomer = null;
+    let productStock = {}; // Store product stock information
     
     $(document).ready(function() {
         // Initialize with empty cart display
         updateCartDisplay();
         
-     // Handle logout with confirmation
-        $('#logoutBtn').on('click', function(e) {
-            e.preventDefault();
-            
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "You will be logged out from the system!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, Logout!',
-                cancelButtonText: 'Cancel',
-                background: '#1a202c',
-                color: '#fff'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Show loading animation
-                    Swal.fire({
-                        title: 'Logging out...',
-                        text: 'Please wait',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading()
-                        },
-                        background: '#1a202c',
-                        color: '#fff'
-                    });
-                    
-                    // Perform logout via AJAX
-                    $.post('${pageContext.request.contextPath}/logout', function() {
-                        // Redirect to login page after successful logout
-                        window.location.href = '${pageContext.request.contextPath}/LoginServlet';
-                    }).fail(function() {
-                        // If logout fails, still redirect to login page
-                        window.location.href = '${pageContext.request.contextPath}/LoginServlet';
-                    });
-                }
-            });
-        });
+        // Initialize product stock information
+        <c:forEach var="product" items="${products}">
+            productStock[${product.id}] = ${product.quantity};
+        </c:forEach>
         
         // Product search
         $('#search-btn').click(searchProducts);
@@ -367,16 +367,14 @@
         });
         
         // Amount paid calculation
-        $('#amount-paid').on('input', calculateBalance);
+        $('#amount-paid').on('input', function() {
+            calculateBalance();
+            validateAmountPaid();
+        });
         
         // Checkout button
         $('#checkout-btn').click(processSale);
-        
-        
-     
     });
-    
- 
     
     function searchProducts() {
         const keyword = $('#product-search').val();
@@ -388,6 +386,15 @@
             data: { keyword: keyword, categoryId: categoryId },
             success: function(response) {
                 $('#product-list').html(response);
+                
+                // Update product stock information after search
+                $('.product-card').each(function() {
+                    const productId = $(this).data('product-id');
+                    const stock = $(this).data('stock');
+                    if (productId && stock !== undefined) {
+                        productStock[productId] = stock;
+                    }
+                });
             }
         });
     }
@@ -449,6 +456,9 @@
     }
     
     function addToCart(productId, productName, price, stock) {
+        // Update product stock information
+        productStock[productId] = stock;
+        
         // Check if product already in cart
         const existingItem = cart.find(item => item.productId === productId);
         
@@ -456,8 +466,9 @@
             if (existingItem.quantity < stock) {
                 existingItem.quantity++;
                 existingItem.subtotal = existingItem.quantity * price;
+                showAlert('Product quantity updated', 'success');
             } else {
-                showAlert('Cannot add more than available stock');
+                showAlert('Cannot add more than available stock', 'error');
                 return;
             }
         } else {
@@ -469,8 +480,9 @@
                     quantity: 1,
                     subtotal: price
                 });
+                showAlert('Product added to cart', 'success');
             } else {
-                showAlert('Product out of stock');
+                showAlert('Product out of stock', 'error');
                 return;
             }
         }
@@ -524,6 +536,7 @@
         
         $('#subtotal').text('Rs. ' + subtotal.toFixed(2));
         calculateBalance();
+        validateAmountPaid();
         updateCheckoutButton();
     }
     
@@ -534,14 +547,23 @@
         }
         
         const item = cart[index];
+        const availableStock = productStock[item.productId] || 0;
+        
+        if (newQuantity > availableStock) {
+            showAlert('Cannot add more than available stock. Available: ' + availableStock, 'error');
+            return;
+        }
+        
         item.quantity = newQuantity;
         item.subtotal = item.quantity * item.price;
         updateCartDisplay();
+        showAlert('Quantity updated', 'success');
     }
     
     function removeFromCart(index) {
         cart.splice(index, 1);
         updateCartDisplay();
+        showAlert('Product removed from cart', 'success');
     }
     
     function calculateBalance() {
@@ -560,9 +582,34 @@
         }
     }
     
+    function validateAmountPaid() {
+        const subtotalText = $('#subtotal').text();
+        const subtotal = parseFloat(subtotalText.replace('Rs. ', '').replace(',', '')) || 0;
+        const amountPaid = parseFloat($('#amount-paid').val()) || 0;
+        const paymentMethod = $('#payment-method').val();
+        const $errorDiv = $('#amount-paid-error');
+        
+        if (amountPaid < subtotal && paymentMethod === 'CASH') {
+            $errorDiv.text('Amount paid is less than subtotal').show();
+            $('#checkout-btn').prop('disabled', true);
+        } else {
+            $errorDiv.hide();
+            updateCheckoutButton();
+        }
+    }
+    
     function updateCheckoutButton() {
         const $checkoutBtn = $('#checkout-btn');
-        $checkoutBtn.prop('disabled', !(cart.length > 0 && selectedCustomer));
+        const subtotalText = $('#subtotal').text();
+        const subtotal = parseFloat(subtotalText.replace('Rs. ', '').replace(',', '')) || 0;
+        const amountPaid = parseFloat($('#amount-paid').val()) || 0;
+        const paymentMethod = $('#payment-method').val();
+        
+        // Disable if cart is empty, no customer selected, or amount paid is insufficient for cash payment
+        const isDisabled = !(cart.length > 0 && selectedCustomer && 
+                           (paymentMethod !== 'CASH' || amountPaid >= subtotal));
+        
+        $checkoutBtn.prop('disabled', isDisabled);
     }
     
     function processSale() {
@@ -570,7 +617,7 @@
         const amountPaid = parseFloat($('#amount-paid').val());
         
         if (isNaN(amountPaid) || amountPaid <= 0) {
-            showAlert('Please enter a valid amount paid');
+            showAlert('Please enter a valid amount paid', 'error');
             return;
         }
         
@@ -579,6 +626,15 @@
         
         if (amountPaid < subtotal && paymentMethod === 'CASH') {
             if (!confirm('Amount paid is less than subtotal. Continue anyway?')) {
+                return;
+            }
+        }
+        
+        // Validate stock before processing
+        for (const item of cart) {
+            const availableStock = productStock[item.productId] || 0;
+            if (item.quantity > availableStock) {
+                showAlert(`Not enough stock for ${item.productName}. Available: ${availableStock}`, 'error');
                 return;
             }
         }
@@ -636,11 +692,43 @@
         form.submit();
     }
     
-    function showAlert(message) {
-        alert(message);
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alert-container');
+        const alertId = 'alert-' + Date.now();
+        
+        const alertClass = {
+            'error': 'alert-danger',
+            'warning': 'alert-warning',
+            'success': 'alert-success',
+            'info': 'alert-info'
+        }[type] || 'alert-info';
+        
+        const icon = {
+            'error': 'fa-exclamation-circle',
+            'warning': 'fa-exclamation-triangle',
+            'success': 'fa-check-circle',
+            'info': 'fa-info-circle'
+        }[type] || 'fa-info-circle';
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.id = alertId;
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas ${icon} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        alertContainer.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }, 5000);
     }
-    
- 
 </script>
 </body>
 </html>

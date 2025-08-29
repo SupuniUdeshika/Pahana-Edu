@@ -114,6 +114,83 @@
                 color: black !important;
             }
         }
+        
+         /* Success Modal Styles */
+    .success-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .success-modal.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .success-modal-content {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 30px;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        transform: translateY(-50px);
+        transition: transform 0.3s ease;
+    }
+    
+    .success-modal.active .success-modal-content {
+        transform: translateY(0);
+    }
+    
+    .success-icon {
+        font-size: 60px;
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+    
+    .success-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #28a745;
+    }
+    
+    .success-message {
+        margin-bottom: 20px;
+        color: #333;
+    }
+    
+    .success-details {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    
+    .success-detail-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    
+    .success-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+        
     </style>
 </head>
 
@@ -231,6 +308,80 @@
         </div>
         <!-- Content End -->
     </div>
+    
+    <div class="success-modal" id="successModal">
+    <div class="success-modal-content">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 class="success-title">Sale Completed Successfully!</h3>
+        <p class="success-message">Your transaction has been processed successfully.</p>
+        
+        <div class="success-details">
+            <div class="success-detail-row">
+                <span>Receipt #:</span>
+                <span><strong>${sale.id}</strong></span>
+            </div>
+            <div class="success-detail-row">
+                <span>Total Amount:</span>
+                <span><strong>Rs. <fmt:formatNumber value="${sale.totalAmount}" pattern="#,##0.00"/></strong></span>
+            </div>
+            <div class="success-detail-row">
+                <span>Customer:</span>
+                <span><strong>${customer.name}</strong></span>
+            </div>
+            <div class="success-detail-row">
+                <span>Payment Method:</span>
+                <span><strong>${sale.paymentMethod}</strong></span>
+            </div>
+        </div>
+        
+        <div class="success-buttons">
+            <button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> Print Receipt
+            </button>
+            <button onclick="closeSuccessModal()" class="btn btn-success">
+                <i class="fas fa-check"></i> Continue
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Show success modal when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if this is a successful sale (not a direct access to receipt page)
+        if (window.location.search.indexOf('success=true') === -1) {
+            // Add success parameter to URL without reloading the page
+            const url = new URL(window.location);
+            url.searchParams.set('success', 'true');
+            window.history.replaceState({}, '', url);
+            
+            // Show the success modal
+            setTimeout(function() {
+                document.getElementById('successModal').classList.add('active');
+            }, 500);
+        }
+    });
+    
+    function closeSuccessModal() {
+        document.getElementById('successModal').classList.remove('active');
+    }
+    
+    // Close modal when clicking outside
+    document.getElementById('successModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeSuccessModal();
+        }
+    });
+    
+    // Close modal with ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSuccessModal();
+        }
+    });
+</script>
 
     <!-- JavaScript Libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>

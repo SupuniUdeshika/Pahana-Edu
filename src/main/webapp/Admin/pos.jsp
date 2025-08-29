@@ -141,9 +141,42 @@
         .text-success {
             color: #48bb78 !important;
         }
+        
+        /* Alert Styles */
+        .alert-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 350px;
+        }
+        
+        .alert {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .alert-danger {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+        
+        .alert-warning {
+            background-color: #feebcb;
+            color: #c05621;
+        }
+        
+        .alert-success {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
     </style>
 </head>
 <body>
+    <!-- Alert Container -->
+    <div class="alert-container" id="alert-container"></div>
+
     <div class="container-fluid position-relative d-flex p-0">
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
@@ -158,7 +191,7 @@
                     </div>
                     <div class="ms-3">
                         <h6 class="mb-0">${sessionScope.user.name}</h6>
-                        <span>Cashier</span>
+                        <span>Administrator</span>
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
@@ -169,7 +202,7 @@
                     <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link active"><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link"><i class="fa fa-history me-2"></i>Sales History</a>
-                    <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                    <!-- <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a> -->
                 </div>
             </nav>
         </div>
@@ -282,6 +315,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Amount Paid</label>
                                     <input type="number" id="amount-paid" class="form-control" step="0.01" min="0" value="0">
+                                    <div id="amount-paid-error" class="text-danger mt-1" style="display: none;"></div>
                                 </div>
                                 
                                 <div class="d-flex justify-content-between mb-3">
@@ -309,10 +343,16 @@
     <script>
     let cart = [];
     let selectedCustomer = null;
+    let productStock = {}; // Store product stock information
     
     $(document).ready(function() {
         // Initialize with empty cart display
         updateCartDisplay();
+        
+        // Initialize product stock information
+        <c:forEach var="product" items="${products}">
+            productStock[${product.id}] = ${product.quantity};
+        </c:forEach>
         
         // Product search
         $('#search-btn').click(searchProducts);
@@ -330,7 +370,10 @@
         });
         
         // Amount paid calculation
-        $('#amount-paid').on('input', calculateBalance);
+        $('#amount-paid').on('input', function() {
+            calculateBalance();
+            validateAmountPaid();
+        });
         
         // Checkout button
         $('#checkout-btn').click(processSale);
@@ -346,6 +389,15 @@
             data: { keyword: keyword, categoryId: categoryId },
             success: function(response) {
                 $('#product-list').html(response);
+                
+                // Update product stock information after search
+                $('.product-card').each(function() {
+                    const productId = $(this).data('product-id');
+                    const stock = $(this).data('stock');
+                    if (productId && stock !== undefined) {
+                        productStock[productId] = stock;
+                    }
+                });
             }
         });
     }
@@ -407,6 +459,9 @@
     }
     
     function addToCart(productId, productName, price, stock) {
+        // Update product stock information
+        productStock[productId] = stock;
+        
         // Check if product already in cart
         const existingItem = cart.find(item => item.productId === productId);
         
@@ -414,8 +469,9 @@
             if (existingItem.quantity < stock) {
                 existingItem.quantity++;
                 existingItem.subtotal = existingItem.quantity * price;
+                showAlert('Product quantity updated', 'success');
             } else {
-                showAlert('Cannot add more than available stock');
+                showAlert('Cannot add more than available stock', 'error');
                 return;
             }
         } else {
@@ -427,8 +483,9 @@
                     quantity: 1,
                     subtotal: price
                 });
+                showAlert('Product added to cart', 'success');
             } else {
-                showAlert('Product out of stock');
+                showAlert('Product out of stock', 'error');
                 return;
             }
         }
@@ -482,6 +539,7 @@
         
         $('#subtotal').text('Rs. ' + subtotal.toFixed(2));
         calculateBalance();
+        validateAmountPaid();
         updateCheckoutButton();
     }
     
@@ -492,14 +550,23 @@
         }
         
         const item = cart[index];
+        const availableStock = productStock[item.productId] || 0;
+        
+        if (newQuantity > availableStock) {
+            showAlert('Cannot add more than available stock. Available: ' + availableStock, 'error');
+            return;
+        }
+        
         item.quantity = newQuantity;
         item.subtotal = item.quantity * item.price;
         updateCartDisplay();
+        showAlert('Quantity updated', 'success');
     }
     
     function removeFromCart(index) {
         cart.splice(index, 1);
         updateCartDisplay();
+        showAlert('Product removed from cart', 'success');
     }
     
     function calculateBalance() {
@@ -518,9 +585,34 @@
         }
     }
     
+    function validateAmountPaid() {
+        const subtotalText = $('#subtotal').text();
+        const subtotal = parseFloat(subtotalText.replace('Rs. ', '').replace(',', '')) || 0;
+        const amountPaid = parseFloat($('#amount-paid').val()) || 0;
+        const paymentMethod = $('#payment-method').val();
+        const $errorDiv = $('#amount-paid-error');
+        
+        if (amountPaid < subtotal && paymentMethod === 'CASH') {
+            $errorDiv.text('Amount paid is less than subtotal').show();
+            $('#checkout-btn').prop('disabled', true);
+        } else {
+            $errorDiv.hide();
+            updateCheckoutButton();
+        }
+    }
+    
     function updateCheckoutButton() {
         const $checkoutBtn = $('#checkout-btn');
-        $checkoutBtn.prop('disabled', !(cart.length > 0 && selectedCustomer));
+        const subtotalText = $('#subtotal').text();
+        const subtotal = parseFloat(subtotalText.replace('Rs. ', '').replace(',', '')) || 0;
+        const amountPaid = parseFloat($('#amount-paid').val()) || 0;
+        const paymentMethod = $('#payment-method').val();
+        
+        // Disable if cart is empty, no customer selected, or amount paid is insufficient for cash payment
+        const isDisabled = !(cart.length > 0 && selectedCustomer && 
+                           (paymentMethod !== 'CASH' || amountPaid >= subtotal));
+        
+        $checkoutBtn.prop('disabled', isDisabled);
     }
     
     function processSale() {
@@ -528,7 +620,7 @@
         const amountPaid = parseFloat($('#amount-paid').val());
         
         if (isNaN(amountPaid) || amountPaid <= 0) {
-            showAlert('Please enter a valid amount paid');
+            showAlert('Please enter a valid amount paid', 'error');
             return;
         }
         
@@ -537,6 +629,15 @@
         
         if (amountPaid < subtotal && paymentMethod === 'CASH') {
             if (!confirm('Amount paid is less than subtotal. Continue anyway?')) {
+                return;
+            }
+        }
+        
+        // Validate stock before processing
+        for (const item of cart) {
+            const availableStock = productStock[item.productId] || 0;
+            if (item.quantity > availableStock) {
+                showAlert(`Not enough stock for ${item.productName}. Available: ${availableStock}`, 'error');
                 return;
             }
         }
@@ -594,8 +695,42 @@
         form.submit();
     }
     
-    function showAlert(message) {
-        alert(message);
+    function showAlert(message, type = 'info') {
+        const alertContainer = document.getElementById('alert-container');
+        const alertId = 'alert-' + Date.now();
+        
+        const alertClass = {
+            'error': 'alert-danger',
+            'warning': 'alert-warning',
+            'success': 'alert-success',
+            'info': 'alert-info'
+        }[type] || 'alert-info';
+        
+        const icon = {
+            'error': 'fa-exclamation-circle',
+            'warning': 'fa-exclamation-triangle',
+            'success': 'fa-check-circle',
+            'info': 'fa-info-circle'
+        }[type] || 'fa-info-circle';
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.id = alertId;
+        alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas ${icon} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        alertContainer.appendChild(alertDiv);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            const alert = document.getElementById(alertId);
+            if (alert) {
+                alert.remove();
+            }
+        }, 5000);
     }
 </script>
 </body>

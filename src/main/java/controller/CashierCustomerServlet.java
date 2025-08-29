@@ -47,7 +47,8 @@ public class CashierCustomerServlet extends HttpServlet {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new ServletException("Database error occurred", e);
+            request.getSession().setAttribute("errorMessage", "Database error occurred: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/Cashier/customers");
         }
     }
     
@@ -61,10 +62,13 @@ public class CashierCustomerServlet extends HttpServlet {
                 insertCustomer(request, response, customerDAO);
             } else if ("update".equals(action)) {
                 updateCustomer(request, response, customerDAO);
+            } else if ("delete".equals(action)) {
+                deleteCustomer(request, response, customerDAO);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            throw new ServletException("Database error occurred", e);
+            request.getSession().setAttribute("errorMessage", "Database error occurred: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/Cashier/customers");
         }
     }
     
@@ -122,35 +126,54 @@ public class CashierCustomerServlet extends HttpServlet {
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
         Customer customer = customerDAO.getCustomerById(id);
-        request.setAttribute("customer", customer);
-        request.getRequestDispatcher("/cashier/customer-form.jsp").forward(request, response);
+        
+        if (customer != null) {
+            request.setAttribute("customer", customer);
+            request.getRequestDispatcher("/cashier/customer-form.jsp").forward(request, response);
+        } else {
+            request.getSession().setAttribute("errorMessage", "Customer not found with ID: " + id);
+            response.sendRedirect(request.getContextPath() + "/Cashier/customers");
+        }
     }
     
     private void insertCustomer(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
             throws ServletException, IOException, SQLException {
-        Customer customer = new Customer();
-        customer.setAccountNumber(request.getParameter("accountNumber"));
-        customer.setName(request.getParameter("name"));
-        customer.setAddress(request.getParameter("address"));
-        customer.setTelephone(request.getParameter("telephone"));
-        customer.setEmail(request.getParameter("email"));
-        
-        // Customer එක add කරන්න
-        boolean success = customerDAO.addCustomer(customer);
-        
-        if (success) {
-            // Email එක යවන්න
-            String customerEmail = customer.getEmail();
-            String customerName = customer.getName();
+        try {
+            Customer customer = new Customer();
+            customer.setAccountNumber(request.getParameter("accountNumber"));
+            customer.setName(request.getParameter("name"));
+            customer.setAddress(request.getParameter("address"));
+            customer.setTelephone(request.getParameter("telephone"));
+            customer.setEmail(request.getParameter("email"));
             
-            // Background thread එකකින් email යවන්න (performance සඳහා)
-            new Thread(() -> {
-                EmailUtil.sendCustomerWelcomeEmail(customerEmail, customerName);
-            }).start();
+            // Validate required fields
+            if (customer.getName() == null || customer.getName().trim().isEmpty() ||
+                customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "Name and Email are required fields.");
+                response.sendRedirect(request.getContextPath() + "/Cashier/customers?action=new");
+                return;
+            }
             
-            request.getSession().setAttribute("successMessage", "Customer added successfully! Welcome email sent.");
-        } else {
-            request.getSession().setAttribute("errorMessage", "Failed to add customer.");
+            // Customer එක add කරන්න
+            boolean success = customerDAO.addCustomer(customer);
+            
+            if (success) {
+                // Email එක යවන්න
+                String customerEmail = customer.getEmail();
+                String customerName = customer.getName();
+                
+                // Background thread එකකින් email යවන්න (performance සඳහා)
+                new Thread(() -> {
+                    EmailUtil.sendCustomerWelcomeEmail(customerEmail, customerName);
+                }).start();
+                
+                request.getSession().setAttribute("successMessage", "Customer added successfully! Welcome email sent.");
+            } else {
+                request.getSession().setAttribute("errorMessage", "Failed to add customer. Account number or email might already exist.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("errorMessage", "Error adding customer: " + e.getMessage());
         }
         
         response.sendRedirect(request.getContextPath() + "/Cashier/customers");
@@ -158,21 +181,34 @@ public class CashierCustomerServlet extends HttpServlet {
     
     private void updateCustomer(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
             throws ServletException, IOException, SQLException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        Customer customer = new Customer();
-        customer.setId(id);
-        customer.setAccountNumber(request.getParameter("accountNumber"));
-        customer.setName(request.getParameter("name"));
-        customer.setAddress(request.getParameter("address"));
-        customer.setTelephone(request.getParameter("telephone"));
-        customer.setEmail(request.getParameter("email"));
-        
-        boolean success = customerDAO.updateCustomer(customer);
-        
-        if (success) {
-            request.getSession().setAttribute("successMessage", "Customer updated successfully!");
-        } else {
-            request.getSession().setAttribute("errorMessage", "Failed to update customer.");
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            Customer customer = new Customer();
+            customer.setId(id);
+            customer.setAccountNumber(request.getParameter("accountNumber"));
+            customer.setName(request.getParameter("name"));
+            customer.setAddress(request.getParameter("address"));
+            customer.setTelephone(request.getParameter("telephone"));
+            customer.setEmail(request.getParameter("email"));
+            
+            // Validate required fields
+            if (customer.getName() == null || customer.getName().trim().isEmpty() ||
+                customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+                request.getSession().setAttribute("errorMessage", "Name and Email are required fields.");
+                response.sendRedirect(request.getContextPath() + "/Cashier/customers?action=edit&id=" + id);
+                return;
+            }
+            
+            boolean success = customerDAO.updateCustomer(customer);
+            
+            if (success) {
+                request.getSession().setAttribute("successMessage", "Customer updated successfully!");
+            } else {
+                request.getSession().setAttribute("errorMessage", "Failed to update customer. Account number or email might already exist.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("errorMessage", "Error updating customer: " + e.getMessage());
         }
         
         response.sendRedirect(request.getContextPath() + "/Cashier/customers");
@@ -180,15 +216,26 @@ public class CashierCustomerServlet extends HttpServlet {
     
     private void deleteCustomer(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
             throws ServletException, IOException, SQLException {
-        int id = Integer.parseInt(request.getParameter("id"));
-        boolean success = customerDAO.deleteCustomer(id);
-        
-        if (success) {
-            request.getSession().setAttribute("successMessage", "Customer deleted successfully!");
-        } else {
-            request.getSession().setAttribute("errorMessage", "Failed to delete customer.");
+        try {
+            int id = Integer.parseInt(request.getParameter("id"));
+            boolean success = customerDAO.deleteCustomer(id);
+            
+            if (success) {
+                request.getSession().setAttribute("successMessage", "Customer deleted successfully!");
+            } else {
+                request.getSession().setAttribute("errorMessage", "Failed to delete customer. The customer might have associated orders.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.getSession().setAttribute("errorMessage", "Error deleting customer: " + e.getMessage());
         }
         
-        response.sendRedirect(request.getContextPath() + "/Cashier/customers");
+        // For AJAX requests, we don't redirect but let the client handle the response
+        if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+            response.setContentType("application/json");
+            response.getWriter().write("{\"success\": true}");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/Cashier/customers");
+        }
     }
 }

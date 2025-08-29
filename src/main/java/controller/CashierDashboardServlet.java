@@ -1,69 +1,47 @@
 package controller;
 
-import dao.CategoryDAO;
-import dao.ProductDAO;
-import dao.CustomerDAO;
-import dao.DatabaseConnection;
-import model.Category;
-import model.Product;
-import model.User;
 import java.io.IOException;
-import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import dao.CustomerDAO;
+import dao.ProductDAO;
 
-@WebServlet("/Cashier/CashierDashboardServlet")
+@WebServlet("/cashier/Cashierdashboard")
 public class CashierDashboardServlet extends HttpServlet {
-    
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-            throws ServletException, IOException {
-        
+    private static final long serialVersionUID = 1L;
+    private CustomerDAO customerDAO;
+    private ProductDAO productDAO;
+
+    public void init() {
+        customerDAO = new CustomerDAO();
+        productDAO = new ProductDAO();
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
-            // Check if user is logged in and has cashier role
-            HttpSession session = request.getSession();
-            User user = (User) session.getAttribute("user");
+            // Get counts for dashboard
+            int totalCustomers = customerDAO.getTotalCustomers();
+            int totalProducts = productDAO.getTotalProducts();
+            int lowStockProducts = productDAO.getLowStockProductsCount();
             
-            if (user == null || !"CASHIER".equals(user.getRole())) {
-                response.sendRedirect(request.getContextPath() + "/LoginServlet");
-                return;
-            }
-            
-            // Debug message
-            System.out.println("Loading products and categories...");
-            
-            // Load products and categories for the modal
-            ProductDAO productDAO = new ProductDAO();
-            CategoryDAO categoryDAO = new CategoryDAO();
-            
-            List<Product> products = productDAO.getAllProducts();
-            List<Category> categories = categoryDAO.getAllCategories();
-            
-            // Debug messages
-            System.out.println("Number of products loaded: " + products.size());
-            System.out.println("Number of categories loaded: " + categories.size());
-            
-            request.setAttribute("products", products);
-            request.setAttribute("categories", categories);
-            
-            // Load dashboard statistics
-            CustomerDAO customerDAO = new CustomerDAO(DatabaseConnection.getConnection());
-            int totalCustomers = customerDAO.getAllCustomers().size();
+            // Set attributes for JSP
             request.setAttribute("totalCustomers", totalCustomers);
+            request.setAttribute("totalProducts", totalProducts);
+            request.setAttribute("lowStockProducts", lowStockProducts);
             
-            // Temporary values - replace with actual DAO calls
-            request.setAttribute("activeLoans", 0);
-            request.setAttribute("overdueItems", 0);
-            request.setAttribute("dailySalesTotal", 0.0);
-            request.setAttribute("dailySalesCount", 0);
+            // Forward to dashboard JSP
+            request.getRequestDispatcher("/cashier/Cashierdashboard.jsp").forward(request, response);
             
-            request.getRequestDispatcher("/Cashier/Cashierdashboard.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new ServletException(e);
+            throw new ServletException("Error loading dashboard data", e);
         }
+    }
+
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        doGet(request, response);
     }
 }

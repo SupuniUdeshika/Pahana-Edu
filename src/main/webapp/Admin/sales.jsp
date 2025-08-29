@@ -42,6 +42,9 @@
     <!-- Custom CSS -->
     <link href="${pageContext.request.contextPath}/css/style.css" rel="stylesheet">
     
+    <!-- SweetAlert2 for confirmation dialogs -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- In the head section, update the style tag -->
 	<style>
 	    .chart-container {
@@ -78,8 +81,8 @@
         <!-- Sidebar Start -->
         <div class="sidebar pe-4 pb-3">
             <nav class="navbar bg-secondary navbar-dark">
-                <a href="${pageContext.request.contextPath}/Admin/Admindashboard.jsp" class="navbar-brand mx-4 mb-3">
-                    <h3 class="text-primary"><i class="fa fa-cash-register me-2"></i>Cashier Panel</h3>
+                <a href="${pageContext.request.contextPath}/Admin/Admindashboard" class="navbar-brand mx-4 mb-3">
+                    <h3 class="text-primary"><i class="fa fa-cash-register me-2"></i>Admin Panel</h3>
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
@@ -99,7 +102,7 @@
                     <a href="${pageContext.request.contextPath}/Admin/products" class="nav-item nav-link"><i class="fa fa-book me-2"></i>Book Management</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/pos" class="nav-item nav-link "><i class="fa fa-shopping-cart me-2"></i>Point of Sale</a>
                     <a href="${pageContext.request.contextPath}/AdminCashier/sales" class="nav-item nav-link active"><i class="fa fa-history me-2"></i>Sales History</a>
-                    <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>
+                    <!-- <a href="${pageContext.request.contextPath}/Admin/settings" class="nav-item nav-link"><i class="fa fa-cog me-2"></i>Settings</a>-->
                 </div>
             </nav>
         </div>
@@ -119,8 +122,8 @@
                             <span class="d-none d-lg-inline-flex">${sessionScope.user.name}</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>
-                            <a href="${pageContext.request.contextPath}/logout" class="dropdown-item" id="logoutBtn">Log Out</a>
+                            <!-- <a href="${pageContext.request.contextPath}/profile" class="dropdown-item">My Profile</a>-->
+                            <a href="#" class="dropdown-item" id="logoutBtn">Log Out</a>
                         </div>
                     </div>
                 </div>
@@ -251,7 +254,6 @@
                 }
             });
             
-            
             // Handle logout with confirmation
             $('#logoutBtn').on('click', function(e) {
                 e.preventDefault();
@@ -284,17 +286,14 @@
                         // Perform logout via AJAX
                         $.post('${pageContext.request.contextPath}/logout', function() {
                             // Redirect to login page after successful logout
-                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                            window.location.href = '${pageContext.request.contextPath}/Auth/index.jsp';
                         }).fail(function() {
                             // If logout fails, still redirect to login page
-                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                            window.location.href = '${pageContext.request.contextPath}/Auth/index.jsp';
                         });
                     }
                 });
             });
-            
-            
-            
             
             // Export button functionality
             $('#exportBtn').click(function() {

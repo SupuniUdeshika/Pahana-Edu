@@ -86,7 +86,7 @@ public class LoginServlet extends HttpServlet {
     private String getDashboardPath(HttpServletRequest request, User user) {
         String contextPath = request.getContextPath();
         if ("ADMIN".equals(user.getRole())) return contextPath + "/Admin/Admindashboard";
-        if ("CASHIER".equals(user.getRole())) return contextPath + "/cashier/Cashierdashboard.jsp";
+        if ("CASHIER".equals(user.getRole())) return contextPath + "/cashier/Cashierdashboard";
         return contextPath + "/Auth/index.jsp";
     }
 

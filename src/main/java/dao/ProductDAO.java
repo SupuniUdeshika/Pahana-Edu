@@ -361,6 +361,16 @@ public class ProductDAO {
         return products;
     }
     
-    
+    public boolean updateProductQuantity(int productId, int newQuantity) {
+        String sql = "UPDATE products SET quantity = ? WHERE id = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, newQuantity);
+            statement.setInt(2, productId);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
     
 }
