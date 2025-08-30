@@ -229,120 +229,146 @@
     <script src="${pageContext.request.contextPath}/js/main.js"></script>
     
     <script>
-        $(document).ready(function() {
-            // Initialize DataTable
-            $('#customerTable').DataTable({
-                responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: [6] } // Make actions column not sortable
-                ]
-            });
-            
-            // Handle logout with confirmation
-            $('#logoutBtn').on('click', function(e) {
-                e.preventDefault();
-                
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You will be logged out from the system!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, Logout!',
-                    cancelButtonText: 'Cancel',
-                    background: '#1a202c',
-                    color: '#fff'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Show loading animation
-                        Swal.fire({
-                            title: 'Logging out...',
-                            text: 'Please wait',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading()
-                            },
-                            background: '#1a202c',
-                            color: '#fff'
-                        });
-                        
-                        // Perform logout via AJAX
-                        $.post('${pageContext.request.contextPath}/logout', function() {
-                            // Redirect to login page after successful logout
-                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
-                        }).fail(function() {
-                            // If logout fails, still redirect to login page
-                            window.location.href = '${pageContext.request.contextPath}/LoginServlet';
-                        });
-                    }
-                });
-            });
-            
-            // Initialize tooltips
-            $('[data-bs-toggle="tooltip"]').tooltip();
-            
-            // Back to top button
-            $(window).scroll(function() {
-                if ($(this).scrollTop() > 300) {
-                    $('.back-to-top').fadeIn('slow');
-                } else {
-                    $('.back-to-top').fadeOut('slow');
-                }
-            });
-            
-            $('.back-to-top').click(function() {
-                $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
-                return false;
-            });
-            
-            // Show success message if exists
-            <c:if test="${not empty successMessage}">
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: '${successMessage}',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    background: '#1a202c',
-                    color: '#fff'
-                });
-            </c:if>
-            
-            // Show error message if exists
-            <c:if test="${not empty errorMessage}">
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error!',
-                    text: '${errorMessage}',
-                    timer: 3000,
-                    showConfirmButton: false,
-                    background: '#1a202c',
-                    color: '#fff'
-                });
-            </c:if>
+    $(document).ready(function() {
+        // Initialize DataTable
+        $('#customerTable').DataTable({
+            responsive: true,
+            columnDefs: [
+                { orderable: false, targets: [6] } // Make actions column not sortable
+            ]
         });
         
-        // Custom delete confirmation with SweetAlert
-        function confirmDelete(event, url) {
-            event.preventDefault();
+        // Handle logout with confirmation
+        $('#logoutBtn').on('click', function(e) {
+            e.preventDefault();
             
             Swal.fire({
                 title: 'Are you sure?',
-                text: "You won't be able to revert this!",
+                text: "You will be logged out from the system!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, delete it!',
+                confirmButtonText: 'Yes, Logout!',
+                cancelButtonText: 'Cancel',
                 background: '#1a202c',
                 color: '#fff'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = url;
+                    // Show loading animation
+                    Swal.fire({
+                        title: 'Logging out...',
+                        text: 'Please wait',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        },
+                        background: '#1a202c',
+                        color: '#fff'
+                    });
+                    
+                    // Perform logout via AJAX
+                    $.post('${pageContext.request.contextPath}/logout', function() {
+                        // Redirect to login page after successful logout
+                        window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                    }).fail(function() {
+                        // If logout fails, still redirect to login page
+                        window.location.href = '${pageContext.request.contextPath}/LoginServlet';
+                    });
                 }
             });
-        }
-    </script>
+        });
+        
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+        
+        // Back to top button
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 300) {
+                $('.back-to-top').fadeIn('slow');
+            } else {
+                $('.back-to-top').fadeOut('slow');
+            }
+        });
+        
+        $('.back-to-top').click(function() {
+            $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
+            return false;
+        });
+        
+        // Show success message if exists
+        <c:if test="${not empty successMessage}">
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '${successMessage}',
+                timer: 3000,
+                showConfirmButton: false,
+                background: '#1a202c',
+                color: '#fff'
+            });
+        </c:if>
+        
+        // Show error message if exists
+        <c:if test="${not empty errorMessage}">
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '${errorMessage}',
+                timer: 5000, // Increased timer for error messages
+                showConfirmButton: true,
+                background: '#1a202c',
+                color: '#fff'
+            });
+        </c:if>
+    });
+    
+    // Custom delete confirmation with SweetAlert
+    function confirmDelete(event, url) {
+        event.preventDefault();
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            background: '#1a202c',
+            color: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading animation while processing
+                Swal.fire({
+                    title: 'Processing...',
+                    text: 'Please wait',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading()
+                    },
+                    background: '#1a202c',
+                    color: '#fff'
+                });
+                
+                // Perform the delete operation via AJAX
+                $.get(url, function(response) {
+                    // Redirect to customers page after successful delete
+                    window.location.href = '${pageContext.request.contextPath}/Admin/customers';
+                }).fail(function(xhr) {
+                    // Handle error response
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Delete Failed',
+                        text: 'Cannot delete customer. This customer has associated sales records.',
+                        showConfirmButton: true,
+                        background: '#1a202c',
+                        color: '#fff'
+                    });
+                });
+            }
+        });
+    }
+</script>
 </body>
 </html>

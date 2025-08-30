@@ -181,12 +181,21 @@ public class CustomerServlet extends HttpServlet {
     private void deleteCustomer(HttpServletRequest request, HttpServletResponse response, CustomerDAO customerDAO) 
             throws ServletException, IOException, SQLException {
         int id = Integer.parseInt(request.getParameter("id"));
-        boolean success = customerDAO.deleteCustomer(id);
-        
-        if (success) {
-            request.getSession().setAttribute("successMessage", "Customer deleted successfully!");
-        } else {
-            request.getSession().setAttribute("errorMessage", "Failed to delete customer.");
+        try {
+            boolean success = customerDAO.deleteCustomer(id);
+            
+            if (success) {
+                request.getSession().setAttribute("successMessage", "Customer deleted successfully!");
+            } else {
+                request.getSession().setAttribute("errorMessage", "Failed to delete customer.");
+            }
+        } catch (SQLException e) {
+            if (e.getSQLState().equals("23000") && e.getErrorCode() == 1451) {
+                // Foreign key constraint violation
+                request.getSession().setAttribute("errorMessage", "Cannot delete customer. This customer has associated sales records.");
+            } else {
+                request.getSession().setAttribute("errorMessage", "Database error occurred: " + e.getMessage());
+            }
         }
         
         response.sendRedirect(request.getContextPath() + "/Admin/customers");
